@@ -1,0 +1,4 @@
+data/*.jsonl
+data/*.key
+.env
+node_modules/

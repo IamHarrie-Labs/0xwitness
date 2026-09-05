@@ -1,0 +1,8 @@
+{
+  "maxNotionalUsd": 200,
+  "maxLeverage": 3,
+  "allowedSymbols": ["BTCUSDT", "ETHUSDT", "SOLUSDT"],
+  "maxPositionPctOfEquity": 25,
+  "maxOpenPositions": 3,
+  "blockAfterConsecutiveLosses": 2
+}

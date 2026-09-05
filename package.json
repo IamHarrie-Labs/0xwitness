@@ -1,0 +1,15 @@
+{
+  "name": "blackbox",
+  "version": "0.1.0",
+  "description": "Flight recorder for AI trading agents on Binance Agent OS. Every decision is reproducible.",
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=22.6" },
+  "scripts": {
+    "keys":   "node --experimental-strip-types src/cli/index.ts keys",
+    "run":    "node --experimental-strip-types src/cli/index.ts run",
+    "replay": "node --experimental-strip-types src/cli/index.ts replay",
+    "verify": "node --experimental-strip-types src/cli/index.ts verify",
+    "tamper": "node --experimental-strip-types src/cli/index.ts tamper"
+  }
+}
