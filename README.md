@@ -73,8 +73,8 @@ That is the whole claim, and you just checked it without trusting us.
                             hash → sign → append
 ```
 
-The agent reaches the world only through `Transport`. Live and replay differ by one
-swap, which is what makes reproduction exact rather than approximate.
+The agent reaches the world only through `Transport`. Live and replay differ by
+one swap, so reproduction is exact, not approximate.
 
 The policy engine is deliberately *not* an LLM. Charter limits — notional, leverage,
 symbol scope, position concentration, losing-streak — are arithmetic, so they replay
@@ -82,22 +82,26 @@ identically forever and cannot be argued out of by a persuasive prompt.
 
 ## What this does not claim
 
-- **Not bit-determinism from hosted LLMs.** They batch nondeterministically; temperature 0
-  is not a guarantee. We guarantee the *inputs* are reconstructed exactly and any output
-  divergence is **surfaced rather than hidden**. With the built-in offline model, replay is
-  exact. With a hosted model, a non-empty diff is a real measurement of how stable the
-  agent's judgment is — which is worth knowing.
-- **Not a claim that the agent predicts markets.** The bundled strategy is a plain momentum
-  rule. The contribution is the evidence layer, not the alpha.
-- **Not a tamper-*proof* log** — a tamper-*evident* one. Someone with the private key could
-  rewrite history wholesale. Anchoring the chain head periodically would close that, and the
-  hash chain is already shaped for it.
-- **Not custody.** Agent OS gives agents no withdrawal scope. Neither does this.
-- **Not financial advice, and not a bypass of Agent OS's own confirmation step.** The bundled
-  strategy exists to give the receipt something real to record, not as a signal to trade on.
-  `--submit` still surfaces the order for approval in your own Agent OS client — this code
-  cannot execute anything on its own. Market orders only; no limit, stop-loss or take-profit
-  order types are wired up.
+**Bit-determinism from hosted LLMs.** They batch nondeterministically, so temperature 0 isn't
+a guarantee. What's actually guaranteed: the *inputs* are reconstructed exactly, and any output
+divergence gets surfaced instead of hidden. With the built-in offline model, replay is exact.
+With a hosted model, a non-empty diff is a real measurement of how stable the agent's judgment
+is, which is worth knowing on its own.
+
+**That the agent predicts markets.** The bundled strategy is a plain momentum rule, nothing
+more. The contribution here is the evidence layer, not the alpha.
+
+**A tamper-proof log.** It's tamper-evident. Someone holding the private key could still
+rewrite history wholesale. Anchoring the chain head periodically would close that gap, and
+the hash chain is already shaped for it.
+
+**Custody of any kind.** Agent OS gives agents no withdrawal scope. Neither does this.
+
+**Financial advice, or a way around Agent OS's own confirmation step.** The bundled strategy
+exists to give the receipt something real to record, not to signal what you should trade.
+`--submit` still surfaces the order for approval in your own Agent OS client; this code can't
+execute anything by itself. And it's market orders only for now, no limit, stop-loss or
+take-profit types wired up yet.
 
 ## Running against live Agent OS
 
