@@ -93,6 +93,11 @@ identically forever and cannot be argued out of by a persuasive prompt.
   rewrite history wholesale. Anchoring the chain head periodically would close that, and the
   hash chain is already shaped for it.
 - **Not custody.** Agent OS gives agents no withdrawal scope. Neither does this.
+- **Not financial advice, and not a bypass of Agent OS's own confirmation step.** The bundled
+  strategy exists to give the receipt something real to record, not as a signal to trade on.
+  `--submit` still surfaces the order for approval in your own Agent OS client — this code
+  cannot execute anything on its own. Market orders only; no limit, stop-loss or take-profit
+  order types are wired up.
 
 ## Running against live Agent OS
 
