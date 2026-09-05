@@ -1,7 +1,7 @@
 {
-  "name": "blackbox",
+  "name": "0xwitness",
   "version": "0.1.0",
-  "description": "Flight recorder for AI trading agents on Binance Agent OS. Every decision is reproducible.",
+  "description": "0xWitness — flight recorder for AI trading agents on Binance Agent OS. Every decision is reproducible.",
   "type": "module",
   "license": "MIT",
   "engines": { "node": ">=22.6" },

@@ -5,7 +5,7 @@ import { seal, nextSeq } from "../receipt/store.ts";
 import { loadCharter, charterHash, evaluate } from "./policy.ts";
 import { decide } from "./decide.ts";
 
-export const AGENT = { name: "blackbox-momentum", version: "0.1.0" };
+export const AGENT = { name: "0xwitness-momentum", version: "0.1.0" };
 
 export async function runOnce(transport: Transport, opts: { offline: boolean; dryRun: boolean }): Promise<Receipt> {
   const charter = loadCharter();

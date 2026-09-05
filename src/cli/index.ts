@@ -100,7 +100,7 @@ switch (cmd) {
 
   default:
     console.log(`
-blackbox — flight recorder for AI trading agents
+0xWitness — flight recorder for AI trading agents
 
   npm run keys                          generate the signing keypair
   npm run fixture                       write a deterministic market fixture

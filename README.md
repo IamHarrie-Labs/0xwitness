@@ -1,8 +1,9 @@
-# blackbox
+# 0xWitness
 
 **A flight recorder for AI trading agents on Binance Agent OS.**
 
-Every other agent asks you to trust it. This one hands you the evidence.
+Every other agent asks you to trust it. This one hands you the evidence — signed,
+so it can testify for itself.
 
 Each decision emits a signed, hash-chained **receipt** containing the exact market
 snapshot the agent saw, the exact prompt it was given, the model output, the policy

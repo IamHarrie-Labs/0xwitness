@@ -2,7 +2,7 @@ import type { Snapshot, ProposedOrder } from "../receipt/types.ts";
 import type { Charter } from "./policy.ts";
 import { sha256 } from "../receipt/canon.ts";
 
-const MODEL = process.env.BLACKBOX_MODEL ?? "claude-sonnet-5";
+const MODEL = process.env.WITNESS_MODEL ?? "claude-sonnet-5";
 
 export interface Decision {
   model: string; temperature: number;
