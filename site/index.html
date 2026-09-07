@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>0xWitness</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Signed receipts for AI trading agents on Binance Agent OS. Clone the repo, run one command, and get back the identical decision.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#e0dccf;
+    --card:#EFEADD;
+    --ink:#131513;
+    --muted:#5A564C;
+    --muted2:#8A867E;
+    --muted3:#4A4638;
+    --num:#D9D3C2;
+    --accent:#F0B429;
+    --accent-dark:#8A6A00;
+    --good:#8A6A00;
+    --bad:#B23A2F;
+    --rule:rgba(19,21,19,.14);
+    --ease:cubic-bezier(.16,1,.3,1);
+    --rail-w:260px;
+    --pad-y:clamp(32px,4vw,56px);
+    --pad-x:clamp(28px,4.5vw,64px);
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Space Grotesk',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--accent); color:var(--ink); }
+  a{ color:inherit; text-decoration:none; }
+  p{ margin:0; }
+  :focus-visible{ outline:2px solid var(--ink); outline-offset:3px; }
+
+  .texture{
+    position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.04;
+    background-image:
+      repeating-linear-gradient(0deg, var(--ink) 0, var(--ink) 1px, transparent 1px, transparent 64px),
+      repeating-linear-gradient(90deg, var(--ink) 0, var(--ink) 1px, transparent 1px, transparent 64px);
+  }
+
+  .label{ font-style:italic; font-size:11px; letter-spacing:.04em; }
+  .label-sm{ font-style:italic; font-size:11px; letter-spacing:.04em; color:var(--muted); }
+  .label-foot{ font-style:italic; font-size:10px; letter-spacing:.04em; line-height:1.8; color:var(--muted2); }
+
+  /* ---------- rail nav ---------- */
+  .rail{
+    position:fixed; top:0; left:0; width:var(--rail-w); height:100vh;
+    display:flex; flex-direction:column; justify-content:space-between;
+    padding:32px 28px; border-right:1px solid var(--rule);
+    background:var(--bg); z-index:10; box-sizing:border-box;
+  }
+  .rail-mark{ font-weight:700; font-size:16px; letter-spacing:.03em; color:var(--ink); }
+  .rail-tagline{ margin-top:14px; line-height:1.7; }
+  .rail-links{ margin-top:22px; }
+  .rail-link{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 0; border-top:1px solid var(--rule);
+    font-size:13px; color:var(--ink); transition:color .2s var(--ease);
+  }
+  .rail-link.muted{ color:var(--muted); }
+  .rail-link:hover, .rail-link:focus-visible{ color:var(--accent-dark); }
+  .rail-mobile-row{ display:none; }
+
+  main{ position:relative; z-index:1; margin-left:var(--rail-w); }
+
+  section{ padding:var(--pad-y) var(--pad-x); box-sizing:border-box; }
+
+  .cta{
+    font-size:13px; font-weight:600; color:var(--ink); background:var(--accent);
+    padding:13px 22px; display:inline-block;
+    transition:transform .22s var(--ease), filter .22s var(--ease);
+  }
+  .cta:hover, .cta:focus-visible{ transform:translateY(-2px); filter:brightness(1.05); }
+
+  /* ---------- hero ---------- */
+  .hero-media{ margin-top:56px; display:grid; grid-template-areas:"stack"; }
+  .hero-img{
+    grid-area:stack; width:45%; max-width:560px; border:1px solid var(--rule);
+    display:block; justify-self:end; align-self:end;
+  }
+  h1.hero-h1{
+    grid-area:stack; font-size:clamp(38px,7vw,84px); font-weight:700;
+    line-height:1.02; letter-spacing:-0.01em; margin:0; max-width:58%;
+    z-index:2; justify-self:start; align-self:end;
+  }
+  .word-mask{ overflow:hidden; display:inline-block; vertical-align:top; }
+  .word{
+    display:inline-block; transform:translateY(110%);
+    transition:transform .9s var(--ease);
+  }
+  .is-revealed .word{ transform:translateY(0); }
+  .word-mask:nth-child(1) .word{ transition-delay:0ms; }
+  .word-mask:nth-child(2) .word{ transition-delay:90ms; }
+  .word-mask:nth-child(3) .word{ transition-delay:180ms; }
+  .word-mask:nth-child(4) .word{ transition-delay:270ms; }
+  .word-mask:nth-child(5) .word{ transition-delay:360ms; }
+  .word-mask:nth-child(6) .word{ transition-delay:450ms; }
+
+  .hero-footer-row{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    gap:24px; flex-wrap:wrap; margin-top:56px;
+  }
+  .hero-footer-left{ max-width:38ch; color:var(--muted3); font-size:16px; line-height:1.6; }
+  .hero-footer-right{ display:flex; flex-direction:column; align-items:flex-end; flex-shrink:0; }
+  .hero-footer-right .label-foot{ margin-top:10px; text-align:right; }
+
+  /* ---------- steps ---------- */
+  .steps-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:40px; margin-top:8px; }
+  .step{ position:relative; opacity:0; transform:translateY(14px); transition:opacity .6s var(--ease), transform .6s var(--ease); }
+  .step:nth-child(1){ padding-left:0; }
+  .step:nth-child(2){ padding-left:32px; transition-delay:70ms; }
+  .step:nth-child(3){ padding-left:32px; transition-delay:140ms; }
+  .is-revealed .step{ opacity:1; transform:translateY(0); }
+  .step-divider{
+    position:absolute; left:0; top:0; bottom:0; width:1px; background:var(--rule);
+    transform-origin:top; transform:scaleY(0); transition:transform .7s var(--ease);
+  }
+  .step:nth-child(2) .step-divider{ transition-delay:100ms; }
+  .step:nth-child(3) .step-divider{ transition-delay:200ms; }
+  .is-revealed .step-divider{ transform:scaleY(1); }
+  .step-num{ font-size:44px; font-weight:700; color:var(--num); line-height:1; }
+  .step-title{ font-size:19px; font-weight:600; margin-top:18px; color:var(--ink); }
+  .step-desc{ font-size:15px; line-height:1.6; color:var(--muted3); margin-top:10px; max-width:36ch; }
+
+  /* ---------- numeral / zero deps ---------- */
+  .numeral-outer{ position:relative; overflow:hidden; }
+  .numeral-slide{
+    position:absolute; inset:0; background:var(--accent);
+    transform-origin:left; transform:scaleX(0); transition:transform 1.1s var(--ease);
+  }
+  .is-revealed .numeral-slide{ transform:scaleX(1); }
+  .numeral-inner{
+    position:relative; z-index:1; display:flex; align-items:flex-end; gap:48px;
+  }
+  .numeral-pair{ display:flex; align-items:flex-start; gap:6px; }
+  .numeral-zero{ font-size:clamp(96px,16vw,220px); font-weight:700; color:var(--ink); line-height:.8; }
+  .numeral-deps{ font-style:italic; font-size:14px; font-weight:600; letter-spacing:.06em; color:var(--ink); margin-top:14px; }
+  .numeral-right{ padding-bottom:22px; }
+  .numeral-right .label{ color:var(--muted3); }
+  .numeral-right p{ font-size:16px; line-height:1.6; color:var(--ink); max-width:52ch; margin-top:12px; }
+
+  /* ---------- tamper / verify demo ---------- */
+  .verify-p{ font-size:16px; line-height:1.6; color:var(--muted3); max-width:60ch; margin:0 0 28px; }
+  .tamper-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1px; background:var(--rule); }
+  .tamper-card{
+    background:var(--card); padding:18px; box-sizing:border-box;
+    opacity:0; transform:translateY(14px); transition:opacity .6s var(--ease), transform .6s var(--ease);
+  }
+  .is-revealed .tamper-card{ opacity:1; transform:translateY(0); }
+  .tamper-grid .tamper-card:nth-child(1){ transition-delay:0ms; }
+  .tamper-grid .tamper-card:nth-child(2){ transition-delay:70ms; }
+  .tamper-grid .tamper-card:nth-child(3){ transition-delay:140ms; }
+  .tamper-grid .tamper-card:nth-child(4){ transition-delay:210ms; }
+  .tamper-grid .tamper-card:nth-child(5){ transition-delay:280ms; }
+  .tamper-grid .tamper-card:nth-child(6){ transition-delay:350ms; }
+  .tamper-grid .tamper-card:nth-child(7){ transition-delay:420ms; }
+  .tamper-grid .tamper-card:nth-child(8){ transition-delay:490ms; }
+  .tamper-cmd{ font-size:13px; color:var(--muted); }
+  .tamper-result{ font-style:italic; font-size:13px; margin-top:8px; line-height:1.6; }
+  .r-muted{ color:var(--muted); }
+  .r-good{ color:var(--good); }
+  .r-bad{ color:var(--bad); }
+
+  .close-left{ max-width:44ch; color:var(--muted); font-size:16px; line-height:1.6; }
+
+  @media (max-width:899px){
+    .rail{
+      position:sticky; top:0; left:0; width:100%; height:auto; flex-direction:column;
+      padding:14px 20px; border-right:none; border-bottom:1px solid var(--rule);
+    }
+    .rail-tagline, .rail-links, .rail > .label-foot{ display:none; }
+    .rail-mobile-row{ display:flex; justify-content:space-between; align-items:center; gap:16px; }
+    .rail-mobile-links{ display:flex; gap:16px; }
+    main{ margin-left:0; }
+    .hero-media{ margin-top:40px; display:flex; flex-direction:column; gap:20px; }
+    .hero-img{ width:100%; max-width:560px; }
+    h1.hero-h1{ max-width:none; margin:0; }
+    .hero-footer-row{ margin-top:32px; }
+    .steps-grid{ grid-template-columns:1fr; gap:32px; }
+    .step:nth-child(2), .step:nth-child(3){ padding-left:0; }
+    .step-divider{ display:none; }
+    .numeral-inner{ flex-direction:column; align-items:flex-start; gap:24px; }
+    .numeral-right{ padding-bottom:0; }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .word, .step, .step-divider, .numeral-slide, .tamper-card{ transition:none !important; }
+    .word{ transform:translateY(0) !important; }
+    .step, .tamper-card{ opacity:1 !important; transform:translateY(0) !important; }
+    .step-divider{ transform:scaleY(1) !important; }
+    .numeral-slide{ transform:scaleX(1) !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="texture" aria-hidden="true"></div>
+
+<nav class="rail">
+  <div>
+    <div class="rail-mobile-row">
+      <div class="rail-mark">0xWITNESS</div>
+      <div class="rail-mobile-links">
+        <a href="#demo" class="label-sm">Demo →</a>
+        <a href="docs.html" class="label-sm">Docs</a>
+      </div>
+    </div>
+    <div class="label rail-tagline" style="color:var(--muted);">Signed receipts, for AI trading agents, on Binance Agent OS.</div>
+    <div class="rail-links">
+      <a href="#demo" class="rail-link"><span>Run the demo</span><span>→</span></a>
+      <a href="docs.html" class="rail-link muted"><span>Read the docs</span><span>→</span></a>
+      <a href="https://github.com/IamHarrie-Labs/0xwitness" target="_blank" rel="noopener" class="rail-link muted"><span>GitHub</span><span>↗</span></a>
+    </div>
+  </div>
+  <div class="label-foot">Ed25519 · SHA-256<br>MIT license<br>© IamHarrie Labs 2026</div>
+</nav>
+
+<main>
+
+  <!-- Hero -->
+  <section data-reveal="hero">
+    <div class="hero-media">
+      <img class="hero-img" src="images/hero-binoculars.webp" alt="Black-and-white collage of two hands holding binoculars in front of a mustard-yellow circle">
+      <h1 class="hero-h1">
+        <span class="word-mask"><span class="word">Don't&nbsp;</span></span><span class="word-mask"><span class="word">trust&nbsp;</span></span><span class="word-mask"><span class="word">the&nbsp;</span></span><span class="word-mask"><span class="word">screenshot.&nbsp;</span></span><span class="word-mask"><span class="word">Replay&nbsp;</span></span><span class="word-mask"><span class="word">the&nbsp;trade.</span></span>
+      </h1>
+    </div>
+    <div class="hero-footer-row">
+      <p class="hero-footer-left">Every decision your agent makes gets sealed into a signed, hash-chained receipt. Clone the repo, run one command, and get back the identical decision. Tamper with the record, and both verify and replay catch it independently.</p>
+      <div class="hero-footer-right">
+        <a href="#demo" class="cta">Run the demo →</a>
+        <div class="label-foot">8 commands · under 2 seconds · no API key</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Steps -->
+  <section data-reveal="steps">
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div>
+          <div class="step-title">Freeze the snapshot</div>
+          <div class="step-desc">Prices, klines, and account state captured once. No clock reads, no ambient state.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-divider"></div>
+        <div class="step-num">02</div>
+        <div>
+          <div class="step-title">Decide under a charter</div>
+          <div class="step-desc">Six arithmetic policy checks: notional cap, leverage, concentration, symbol allowlist, open positions, losing streak. Not an LLM. It can't be talked out of a limit.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-divider"></div>
+        <div class="step-num">03</div>
+        <div>
+          <div class="step-title">Seal the receipt</div>
+          <div class="step-desc">Canonical JSON, SHA-256, ed25519 signature, and a pointer to the last receipt. Append-only.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Zero deps -->
+  <section class="numeral-outer" data-reveal="numeral">
+    <div class="numeral-slide"></div>
+    <div class="numeral-inner" style="padding:var(--pad-y) var(--pad-x);">
+      <div class="numeral-pair">
+        <div class="numeral-zero">0</div>
+        <div class="numeral-deps">deps</div>
+      </div>
+      <div class="numeral-right">
+        <div class="label">690 lines of TypeScript · 13 files · Node 22, no build step</div>
+        <p>No node_modules, no bundler, no external ledger. Clone it and it runs.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Verify it yourself -->
+  <section id="demo" data-reveal="tamper">
+    <div class="label" style="color:var(--muted2); margin-bottom:12px;">Verify it yourself</div>
+    <p class="verify-p">Run the eight commands below. Replay prints identical. Then tamper with one sealed receipt and watch verify and replay both catch it, without trusting us.</p>
+    <div class="tamper-grid">
+      <div class="tamper-card"><div class="tamper-cmd">$ 0xw keys</div><div class="tamper-result r-muted">ed25519 keypair → data/agent.key</div></div>
+      <div class="tamper-card"><div class="tamper-cmd">$ 0xw fixture</div><div class="tamper-result r-muted">seeded market snapshot, 3 symbols</div></div>
+      <div class="tamper-card"><div class="tamper-cmd">$ 0xw run --offline</div><div class="tamper-result r-muted">seq 0 sealed · 2.4 KB</div></div>
+      <div class="tamper-card"><div class="tamper-cmd">$ 0xw verify</div><div class="tamper-result r-good">hashOk ✓ sigOk ✓ chainOk ✓</div></div>
+      <div class="tamper-card"><div class="tamper-cmd">$ 0xw replay --seq 0</div><div class="tamper-result r-good">identical, 5/5 fields match</div></div>
+      <div class="tamper-card"><div class="tamper-cmd">$ 0xw tamper --seq 0</div><div class="tamper-result r-muted">BTC close × 1.15, hash left stale</div></div>
+      <div class="tamper-card"><div class="tamper-cmd">$ 0xw verify</div><div class="tamper-result r-bad">hashOk ✗, contents no longer match</div></div>
+      <div class="tamper-card"><div class="tamper-cmd">$ 0xw replay --seq 0</div><div class="tamper-result r-bad">altered, decision diverged</div></div>
+    </div>
+  </section>
+
+  <!-- Close -->
+  <section data-reveal="close">
+    <div class="hero-footer-row">
+      <p class="close-left">Tamper-evident, not tamper-proof. Blocked proposals get logged too: a record of only executed trades is a highlight reel, not an audit trail.</p>
+      <div class="hero-footer-right">
+        <a href="docs.html" class="cta">Read the docs →</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var sections = document.querySelectorAll('[data-reveal]');
+
+  if (reduceMotion) {
+    sections.forEach(function(el){ el.classList.add('is-revealed'); });
+    return;
+  }
+
+  // Hero animates in on load, not on scroll (it's already in view).
+  var hero = document.querySelector('[data-reveal="hero"]');
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){ hero.classList.add('is-revealed'); });
+  });
+
+  // Everything else reveals once, the first time it scrolls into view.
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-revealed');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { rootMargin: '0px 0px -8% 0px' });
+
+  sections.forEach(function(el){
+    if (el !== hero) io.observe(el);
+  });
+})();
+</script>
+</body>
+</html>

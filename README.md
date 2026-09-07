@@ -123,7 +123,12 @@ src/mcp/       transport interface, live Agent OS client, fixture replay
 src/agent/     policy engine, decision layer, run loop, replay+diff
 src/market/    seeded fixture generator
 src/cli/       run | replay | verify | tamper | keys | fixture
+site/          static marketing site (index.html + docs.html, no build step)
 ```
+
+`site/index.html` is the landing page; `site/docs.html` covers the same ground as
+this README in a browsable form. Serve the folder with anything static, `npx serve
+site` works with no setup.
 
 Zero runtime dependencies. Node 22.6+ runs the TypeScript directly.
 

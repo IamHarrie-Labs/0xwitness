@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>0xWitness Docs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="How 0xWitness receipts work: what's inside one, the architecture, and what this project does not claim.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F1E8;
+    --card:#EFEADD;
+    --ink:#131513;
+    --muted:#5A564C;
+    --muted2:#8A867E;
+    --muted3:#4A4638;
+    --accent:#F0B429;
+    --accent-dark:#8A6A00;
+    --rule:rgba(19,21,19,.14);
+    --rule2:rgba(19,21,19,.1);
+    --rail-w:260px;
+    --pad-y:clamp(32px,4vw,56px);
+    --pad-x:clamp(28px,4.5vw,64px);
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Space Grotesk',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--accent); color:var(--ink); }
+  a{ color:inherit; text-decoration:none; }
+  p{ margin:0; }
+  :focus-visible{ outline:2px solid var(--ink); outline-offset:3px; }
+
+  .label{ font-style:italic; font-size:11px; letter-spacing:.04em; color:var(--muted2); }
+  .label-foot{ font-style:italic; font-size:10px; letter-spacing:.04em; line-height:1.8; color:var(--muted2); }
+  .p{ font-size:16px; line-height:1.6; color:var(--muted3); max-width:60ch; margin:0 0 16px; }
+
+  .rail{
+    position:fixed; top:0; left:0; width:var(--rail-w); height:100vh;
+    display:flex; flex-direction:column; justify-content:space-between;
+    padding:32px 28px; border-right:1px solid var(--rule);
+    background:var(--bg); z-index:10; box-sizing:border-box;
+  }
+  .rail-mark{ font-weight:700; font-size:16px; letter-spacing:.03em; color:var(--ink); }
+  .rail-tagline{ margin-top:14px; line-height:1.7; color:var(--muted); }
+  .rail-links{ margin-top:22px; }
+  .rail-link{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 0; border-top:1px solid var(--rule);
+    font-size:13px; color:var(--ink); transition:color .2s ease;
+  }
+  .rail-link.muted{ color:var(--muted); }
+  .rail-link:hover, .rail-link:focus-visible{ color:var(--accent-dark); }
+
+  main{ margin-left:var(--rail-w); max-width:900px; }
+  section{
+    padding:var(--pad-y) var(--pad-x); box-sizing:border-box;
+    border-bottom:1px solid var(--rule2);
+  }
+  h1{ font-size:clamp(28px,3vw,38px); font-weight:700; margin:0 0 24px; }
+
+  .two-col{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:32px; }
+
+  .field-list{ display:flex; flex-direction:column; }
+  .field-row{ display:flex; gap:24px; flex-wrap:wrap; padding:18px 0; border-top:1px solid var(--rule); }
+  .field-row:first-child{ border-top:none; }
+  .field-name{ font-style:italic; font-size:15px; color:var(--ink); width:260px; flex-shrink:0; }
+  .field-name.plain{ font-style:normal; font-weight:600; }
+  .field-desc{ font-size:16px; line-height:1.6; color:var(--muted3); max-width:52ch; margin:0; }
+
+  .code-block{ border:1px solid var(--rule); overflow:hidden; }
+  .code-line{ font-size:13.5px; padding:10px 16px; }
+  .code-line:nth-child(odd){ background:var(--card); }
+  .code-cmd{ color:var(--muted3); }
+  .code-comment{ color:var(--muted2); }
+
+  .flow{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:24px 0; }
+  .flow-node{ font-size:13px; padding:8px 14px; border:1px solid rgba(19,21,19,.16); color:var(--muted3); }
+
+  .stat-grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:24px;
+    margin-top:32px; padding-top:24px; border-top:1px solid var(--rule);
+  }
+  .stat-value{ font-weight:700; font-size:24px; color:var(--ink); margin-top:6px; }
+
+  .cta{ font-size:13px; font-weight:600; color:var(--ink); background:var(--accent); padding:13px 22px; display:inline-block; }
+
+  @media (max-width:899px){
+    .rail{ position:sticky; top:0; left:0; width:100%; height:auto; padding:16px 20px; border-right:none; border-bottom:1px solid var(--rule); flex-direction:row; align-items:center; justify-content:space-between; }
+    .rail-tagline, .rail > .label-foot{ display:none; }
+    .rail-links{ margin-top:0; display:flex; gap:16px; }
+    .rail-link{ border-top:none; padding:0; }
+    main{ margin-left:0; }
+    .field-name{ width:auto; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="rail">
+  <div>
+    <a href="index.html" class="rail-mark">0xWITNESS</a>
+    <div class="label rail-tagline">Documentation</div>
+    <div class="rail-links">
+      <a href="index.html" class="rail-link"><span>← Back to site</span></a>
+      <a href="https://github.com/IamHarrie-Labs/0xwitness" target="_blank" rel="noopener" class="rail-link muted"><span>GitHub</span><span>↗</span></a>
+    </div>
+  </div>
+  <div class="label-foot">Ed25519 · SHA-256<br>MIT license<br>© IamHarrie Labs 2026</div>
+</nav>
+
+<main>
+
+  <section>
+    <h1>Why a receipt, not a screenshot</h1>
+    <div class="two-col">
+      <p class="p">When an agent loses your money, you get a P&amp;L number and a vibe. The market moved, the model is nondeterministic, and the prompt may have changed. There is no way to reconstruct what it saw or why it acted, which is exactly why nobody hands one real size.</p>
+      <p class="p">Agent OS already solves the authority problem: isolated sub-accounts, no withdrawal scope, human confirmation on every action. It doesn't solve the evidence problem. That's the gap 0xWitness fills.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="label" style="margin-bottom:16px;">Verify it yourself</div>
+    <div class="code-block">
+      <div class="code-line"><span class="code-cmd">npm run keys</span>  <span class="code-comment"># generate the signing keypair</span></div>
+      <div class="code-line"><span class="code-cmd">npm run fixture</span>  <span class="code-comment"># deterministic market data, fixed seed</span></div>
+      <div class="code-line"><span class="code-cmd">npm run run -- --offline</span>  <span class="code-comment"># one decision cycle, produces receipt #0</span></div>
+      <div class="code-line"><span class="code-cmd">npm run verify</span>  <span class="code-comment"># hashes, signatures, chain</span></div>
+      <div class="code-line"><span class="code-cmd">npm run replay -- --offline</span>  <span class="code-comment"># re-derive the decision from the receipt</span></div>
+      <div class="code-line"><span class="code-cmd">npm run tamper -- --seq 0</span>  <span class="code-comment"># edit one close price inside a sealed receipt</span></div>
+      <div class="code-line"><span class="code-cmd">npm run verify</span>  <span class="code-comment"># hash no longer matches</span></div>
+      <div class="code-line"><span class="code-cmd">npm run replay -- --seq 0 --offline</span>  <span class="code-comment"># decision visibly changes</span></div>
+    </div>
+    <p class="p" style="margin-top:20px;">Replay prints identical. Tamper with one sealed receipt, and both verify and replay catch it, without trusting us.</p>
+  </section>
+
+  <section>
+    <div class="label" style="margin-bottom:28px;">Inside a receipt</div>
+    <div class="field-list">
+      <div class="field-row"><div class="field-name">snapshot</div><div class="field-desc">Every kline, funding rate, and book level the agent saw, frozen. Replay never re-fetches.</div></div>
+      <div class="field-row"><div class="field-name">snapshotHash</div><div class="field-desc">Detects edits to the market data.</div></div>
+      <div class="field-row"><div class="field-name">decision.prompt + promptHash</div><div class="field-desc">The literal prompt, built purely from the snapshot: no clock, no ambient state.</div></div>
+      <div class="field-row"><div class="field-name">decision.rawOutput</div><div class="field-desc">What the model actually said, before parsing.</div></div>
+      <div class="field-row"><div class="field-name">policy.checks</div><div class="field-desc">Each deterministic charter check, with its arithmetic shown.</div></div>
+      <div class="field-row"><div class="field-name">outcome</div><div class="field-desc">Submitted or blocked, and why. Blocked proposals are recorded too: a log of only the trades you took is a highlight reel, not an audit trail.</div></div>
+      <div class="field-row"><div class="field-name">prev + hash + sig</div><div class="field-desc">Hash chain plus ed25519 signature. Nothing can be edited, deleted, reordered, or forged.</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="label" style="margin-bottom:20px;">Architecture</div>
+    <p class="p" style="max-width:60ch;">The agent reaches the world only through a transport layer. Live and replay differ by one swap, so reproduction is exact, not approximate. The policy engine deciding whether a trade goes through is deliberately not an LLM: charter limits for notional, leverage, symbol scope, position concentration, and losing streak are arithmetic, so they replay identically forever and can't be argued out of by a persuasive prompt.</p>
+    <div class="flow">
+      <div class="flow-node">Transport (live or fixture)</div>
+      <div class="flow-node">Snapshot</div>
+      <div class="flow-node">Prompt</div>
+      <div class="flow-node">Model</div>
+      <div class="flow-node">Policy engine</div>
+      <div class="flow-node">Receipt</div>
+      <div class="flow-node">Hash → sign → append</div>
+    </div>
+    <div class="stat-grid">
+      <div><div class="label">Max notional</div><div class="stat-value">$200</div></div>
+      <div><div class="label">Max leverage</div><div class="stat-value">3×</div></div>
+      <div><div class="label">Allowed symbols</div><div class="stat-value">BTC · ETH · SOL</div></div>
+      <div><div class="label">Max position</div><div class="stat-value">25% of equity</div></div>
+      <div><div class="label">Max open positions</div><div class="stat-value">3</div></div>
+      <div><div class="label">Losing streak</div><div class="stat-value">blocks after 2</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="label" style="margin-bottom:28px;">What this doesn't claim</div>
+    <div class="field-list">
+      <div class="field-row"><div class="field-name plain">Not bit-determinism from hosted LLMs</div><div class="field-desc">They batch nondeterministically, so temperature 0 isn't a guarantee. What's actually guaranteed: the inputs are reconstructed exactly, and any output divergence gets surfaced instead of hidden.</div></div>
+      <div class="field-row"><div class="field-name plain">Not a claim that the agent predicts markets</div><div class="field-desc">The bundled strategy is a plain momentum rule, nothing more. The contribution here is the evidence layer, not the alpha.</div></div>
+      <div class="field-row"><div class="field-name plain">Not a tamper-proof log</div><div class="field-desc">It's tamper-evident. Someone holding the private key could still rewrite history wholesale. Anchoring the chain head periodically would close that gap.</div></div>
+      <div class="field-row"><div class="field-name plain">Not custody of any kind</div><div class="field-desc">Agent OS gives agents no withdrawal scope. Neither does this.</div></div>
+      <div class="field-row"><div class="field-name plain">Not financial advice, and not a way around Agent OS's confirmation step</div><div class="field-desc">--submit still surfaces the order for approval in your own client. This code cannot execute anything by itself.</div></div>
+    </div>
+    <div style="margin-top:40px;">
+      <a href="index.html" class="cta">← Back to site</a>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>
