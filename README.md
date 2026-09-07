@@ -10,6 +10,8 @@ snapshot the agent saw, the exact prompt it was given, the model output, the pol
 checks, and the outcome. Anyone can clone this repo and re-derive the decision from
 the receipt alone — no API key, no network, no trusting our screenshots.
 
+**Live site:** [0xwitness.vercel.app](https://0xwitness.vercel.app) · [docs](https://0xwitness.vercel.app/docs.html)
+
 ```
 npx --yes . demo        # or: npm run keys && npm run fixture && npm run run -- --offline
 ```
