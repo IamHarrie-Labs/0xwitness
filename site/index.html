@@ -110,6 +110,15 @@
     gap:24px; flex-wrap:wrap; margin-top:56px;
   }
   .hero-footer-left{ max-width:38ch; color:var(--muted3); font-size:16px; line-height:1.6; }
+
+  /* Hero specifically: paragraph, caption and button share the headline's left
+     edge and stack in one column, rather than splitting to opposite corners. */
+  [data-reveal="hero"] .hero-footer-row{
+    flex-direction:column; align-items:flex-start; margin-top:32px; gap:20px;
+  }
+  [data-reveal="hero"] .hero-footer-right{ align-items:flex-start; }
+  [data-reveal="hero"] .hero-footer-right .label-foot{ text-align:left; margin-bottom:0; order:1; }
+  [data-reveal="hero"] .hero-footer-right .cta{ order:0; }
   .hero-footer-right{ display:flex; flex-direction:column; align-items:flex-end; flex-shrink:0; }
   .hero-footer-right .label-foot{ margin-bottom:10px; text-align:right; }
 
