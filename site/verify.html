@@ -116,7 +116,7 @@
         <a href="/docs" class="label">Docs</a>
       </div>
     </div>
-    <div class="rail-tagline">Verifier — checks a receipt in your browser.</div>
+    <div class="rail-tagline">Verifier: checks a receipt in your browser.</div>
   </div>
   <div class="rail-links">
     <a href="/" class="rail-link"><span>← Back to site</span></a>
@@ -131,7 +131,7 @@
     <h1>Verify a receipt, right here</h1>
     <p class="lede">This runs entirely in your browser: SHA-256, Ed25519 signature verification, and the same
     momentum decision the agent ran, all in client-side JavaScript. Nothing is sent anywhere. The receipt below
-    is real — captured live against Binance Agent OS, not a fixture.</p>
+    is real: captured live against Binance Agent OS, not a fixture.</p>
 
     <div class="panel">
       <div class="label" style="margin-bottom:8px;">Receipt JSON</div>
@@ -145,7 +145,7 @@
         <button id="resetBtn" class="secondary">Reset to real receipt</button>
       </div>
       <p class="hint" style="margin-top:10px;">"Tamper with it" edits one close price in the JSON above and
-      re-verifies automatically — watch the hash check fail while the signature stays validly formed.</p>
+      re-verifies automatically. Watch the hash check fail while the signature stays validly formed.</p>
     </div>
 
     <div id="resultsWrap" hidden>
@@ -287,7 +287,7 @@ async function runVerify() {
   catch (e) { sigErr = e.message; }
 
   const chainInfo = receipt.prev === null
-    ? 'genesis receipt (prev: null) — first in its log'
+    ? 'genesis receipt (prev: null), first entry in its log'
     : `links to previous receipt hash ${receipt.prev.slice(0, 16)}… (full chain verification needs the whole log)`;
 
   let html = '';
