@@ -105,6 +105,13 @@ exists to give the receipt something real to record, not to signal what you shou
 execute anything by itself. And it's market orders only for now, no limit, stop-loss or
 take-profit types wired up yet.
 
+**A full live account picture.** `equityUsd` on live snapshots is the USDT balance, not a
+true portfolio value across every asset. `recentPnl` is always empty live — there's no
+trade-history-derived P&L series wired up yet, so the losing-streak check reads it as zero
+consecutive losses (permissive, never a false block, but not a real behavioral read either).
+`entryPrice` on live positions is `null` for the same reason: Binance's account endpoint
+reports balances, not cost basis.
+
 ## Running against live Agent OS
 
 ```bash
@@ -116,6 +123,14 @@ npm run run -- --live --submit      # submit for confirmation in your client
 Trades execute in your Agentic sub-account, which you fund manually and can revoke at
 any time. `src/mcp/live.ts` is the only file that talks to Binance; everything else is
 transport-agnostic.
+
+**Verified 2026-09-08** against the real server (`Binance-MCP-Server` v1.1.0) with a live
+OAuth session: real klines and prices for BTCUSDT/ETHUSDT/SOLUSDT, a real decision, and a
+real policy block (the sub-account was unfunded, so `position-pct` correctly read `n/a`
+against zero equity and refused the trade rather than passing it). Spot has no funding
+rate — `fundingRate` is honestly `null` on live snapshots, not estimated. `equityUsd` is
+approximated from the USDT balance, since spot accounts report balances, not a single
+equity figure.
 
 ## Layout
 

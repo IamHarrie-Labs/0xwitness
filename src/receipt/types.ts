@@ -14,7 +14,10 @@ export interface SymbolSnapshot {
 
 export interface AccountSnapshot {
   equityUsd: string;
-  positions: { symbol: string; qty: string; entryPrice: string; leverage: number }[];
+  // entryPrice is null for live spot positions: Binance's account endpoint
+  // reports balances, not cost basis, so entry price would need a separate
+  // trade-history pull we don't do (yet). Never populated with a guess.
+  positions: { symbol: string; qty: string; entryPrice: string | null; leverage: number }[];
   recentPnl: number[];      // most recent last; drives the losing-streak check
 }
 
