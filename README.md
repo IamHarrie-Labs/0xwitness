@@ -1,5 +1,7 @@
 # 0xWitness
 
+[![test](https://github.com/IamHarrie-Labs/0xwitness/actions/workflows/test.yml/badge.svg)](https://github.com/IamHarrie-Labs/0xwitness/actions/workflows/test.yml)
+
 **A flight recorder for AI trading agents on Binance Agent OS.**
 
 Every other agent asks you to trust it. This one hands you the evidence — signed,
