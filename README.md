@@ -144,9 +144,34 @@ site/          static marketing site (index.html + docs.html, no build step)
 ```
 
 `site/index.html` is the landing page; `site/docs.html` covers the same ground as
-this README in a browsable form. Serve the folder with anything static, `npx serve
-site` works with no setup.
+this README in a browsable form; `site/verify.html` re-derives a receipt's hash,
+signature and decision entirely in the browser via WebCrypto, no server involved.
+Serve the folder with anything static, `npx serve site` works with no setup.
 
 Zero runtime dependencies. Node 22.6+ runs the TypeScript directly.
+
+## Notes for the Agent OS team
+
+Found while wiring up `src/mcp/live.ts` against the real server, in case it's useful:
+
+- The `initialize` response's own instructions describe tool names as a
+  `{verb}_{product}_{operation}` pattern (e.g. `create_spot_newOrder`,
+  `get_futures_usds_accountBalance`). The actual `tools/list` response uses dotted
+  names instead (`spot.newOrder`, `futures_usds.futuresAccountBalanceV3`). An
+  integration built from the prose description alone — which is the natural first
+  thing to do — will call tool names that don't exist.
+- `tools/list` is paginated (`nextCursor`), and it's not obvious from the first
+  page: page one returns `analysis`, `convert`, `futures_coin`, `futures_usds` and
+  part of `margin` — 50 tools, no `spot` or `wallet` anywhere in it. Page two is
+  where `spot.*` and `wallet.*` actually live. An integration that lists once and
+  stops (a reasonable thing to do) will conclude spot trading isn't exposed at all.
+- Errors come back in the top-level JSON-RPC `error` field, not a per-call
+  `isError` flag on the result — and `error.message` is itself a JSON string in
+  Binance's own REST error format (`{"code":-1121,"msg":"Invalid symbol."}`), so
+  it needs a second parse to read programmatically.
+- Response shape isn't consistent across tools: some calls return `structuredContent`
+  (pre-parsed JSON) alongside `content[0].text`; others (e.g. `spot.klines`) return
+  only the text form, with no `structuredContent` at all. A client has to handle
+  both.
 
 MIT.

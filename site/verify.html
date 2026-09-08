@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>0xWitness Verifier</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Paste a 0xWitness receipt and verify its hash, signature and decision entirely in your browser. No server, no install, no trusting us.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#e0dccf; --card:#EFEADD; --ink:#131513;
+    --muted:#5A564C; --muted2:#8A867E; --muted3:#4A4638;
+    --accent:#F0B429; --accent-dark:#8A6A00;
+    --good:#1D6B3E; --bad:#B23A2F;
+    --rule:rgba(19,21,19,.14);
+    --ease:cubic-bezier(.16,1,.3,1);
+    --rail-w:260px;
+    --pad-y:clamp(32px,4vw,56px); --pad-x:clamp(28px,4.5vw,64px);
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Space Grotesk',sans-serif; -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--accent); color:var(--ink); }
+  a{ color:inherit; text-decoration:none; }
+  p{ margin:0; }
+  :focus-visible{ outline:2px solid var(--ink); outline-offset:3px; }
+
+  .label{ font-weight:600; font-size:11px; letter-spacing:.04em; color:var(--muted2); text-transform:uppercase; }
+
+  .rail{
+    position:fixed; top:0; left:0; width:var(--rail-w); height:100vh;
+    display:flex; flex-direction:column; padding:32px 28px;
+    border-right:1px solid var(--rule); background:var(--bg); z-index:10; box-sizing:border-box;
+  }
+  .rail-mark{ font-weight:700; font-size:16px; letter-spacing:.03em; color:var(--ink); }
+  .rail-tagline{ font-size:13px; color:var(--muted); margin-top:14px; line-height:1.7; }
+  .rail-links{ flex:1; display:flex; flex-direction:column; justify-content:center; }
+  .rail-link{
+    display:flex; justify-content:space-between; align-items:center; padding:12px 0;
+    border-top:1px solid var(--rule); font-size:13px; color:var(--ink); transition:color .2s var(--ease);
+  }
+  .rail-link.muted{ color:var(--muted); }
+  .rail-link:hover, .rail-link:focus-visible{ color:var(--accent-dark); }
+  .rail-top-row{ display:flex; align-items:center; justify-content:space-between; }
+  .rail-mobile-links{ display:none; }
+  .label-foot{ font-size:10px; letter-spacing:.04em; line-height:1.8; color:var(--muted2); }
+
+  main{ margin-left:var(--rail-w); max-width:1000px; }
+  section{ padding:var(--pad-y) var(--pad-x); box-sizing:border-box; }
+  h1{ font-size:clamp(28px,3.4vw,44px); font-weight:700; line-height:1.08; margin:0 0 16px; letter-spacing:-.01em; }
+  .lede{ font-size:16px; line-height:1.6; color:var(--muted3); max-width:60ch; margin:0 0 8px; }
+
+  .panel{ margin-top:28px; }
+  textarea{
+    width:100%; min-height:260px; font-family:ui-monospace,'SF Mono',Consolas,monospace;
+    font-size:12.5px; line-height:1.55; color:var(--ink); background:var(--card);
+    border:1px solid var(--rule); padding:16px; resize:vertical; box-sizing:border-box;
+  }
+  .btn-row{ display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; align-items:center; }
+  button{
+    font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; cursor:pointer;
+    border:1px solid var(--ink); background:var(--accent); color:var(--ink);
+    padding:12px 20px; transition:transform .2s var(--ease), filter .2s var(--ease), background .2s var(--ease);
+  }
+  button:hover, button:focus-visible{ transform:translateY(-2px); filter:brightness(1.05); }
+  button.secondary{ background:transparent; }
+  button.secondary:hover{ background:var(--card); }
+  .hint{ font-size:13px; color:var(--muted2); }
+
+  .results{ margin-top:28px; display:flex; flex-direction:column; gap:1px; background:var(--rule); }
+  .row{
+    background:var(--card); padding:16px 20px; display:flex; justify-content:space-between;
+    align-items:baseline; gap:16px; flex-wrap:wrap;
+  }
+  .row-label{ font-weight:600; font-size:14px; }
+  .row-detail{ font-size:13px; color:var(--muted3); font-family:ui-monospace,'SF Mono',Consolas,monospace; }
+  .pill{ font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:4px 10px; }
+  .pill.ok{ background:var(--good); color:#F5F1E4; }
+  .pill.bad{ background:var(--bad); color:#F5F1E4; }
+  .pill.info{ background:var(--muted2); color:#F5F1E4; }
+
+  .decision-box{
+    margin-top:20px; padding:18px 20px; background:var(--card); border:1px solid var(--rule);
+    font-size:14px; line-height:1.7;
+  }
+  .decision-box code{ font-family:ui-monospace,'SF Mono',Consolas,monospace; }
+
+  .placeholder{ display:none; }
+  #resultsWrap[hidden]{ display:none; }
+
+  @media (max-width:899px){
+    .rail{
+      position:sticky; top:0; left:0; width:100%; height:auto; padding:14px 20px;
+      border-right:none; border-bottom:1px solid var(--rule); flex-direction:column;
+    }
+    .rail-tagline, .rail-links, .rail > .label-foot{ display:none; }
+    .rail-top-row{ gap:16px; }
+    .rail-mobile-links{ display:flex; gap:16px; }
+    main{ margin-left:0; }
+    .row{ flex-direction:column; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="rail">
+  <div class="rail-header">
+    <div class="rail-top-row">
+      <a href="index.html" class="rail-mark">0xWITNESS</a>
+      <div class="rail-mobile-links">
+        <a href="index.html#demo" class="label">Demo →</a>
+        <a href="docs.html" class="label">Docs</a>
+      </div>
+    </div>
+    <div class="rail-tagline">Verifier — checks a receipt in your browser.</div>
+  </div>
+  <div class="rail-links">
+    <a href="index.html" class="rail-link"><span>← Back to site</span></a>
+    <a href="docs.html" class="rail-link muted"><span>Read the docs</span><span>→</span></a>
+    <a href="https://github.com/IamHarrie-Labs/0xwitness" target="_blank" rel="noopener" class="rail-link muted"><span>GitHub</span><span>↗</span></a>
+  </div>
+  <div class="label-foot">Ed25519 · SHA-256<br>MIT license<br>© IamHarrie Labs 2026</div>
+</nav>
+
+<main>
+  <section>
+    <h1>Verify a receipt, right here</h1>
+    <p class="lede">This runs entirely in your browser: SHA-256, Ed25519 signature verification, and the same
+    momentum decision the agent ran, all in client-side JavaScript. Nothing is sent anywhere. The receipt below
+    is real — captured live against Binance Agent OS, not a fixture.</p>
+
+    <div class="panel">
+      <div class="label" style="margin-bottom:8px;">Receipt JSON</div>
+      <textarea id="receiptInput" spellcheck="false"></textarea>
+      <div class="label" style="margin:16px 0 8px;">Signing public key (agent.pub)</div>
+      <textarea id="pubkeyInput" spellcheck="false" style="min-height:80px;"></textarea>
+
+      <div class="btn-row">
+        <button id="verifyBtn">Verify</button>
+        <button id="tamperBtn" class="secondary">Tamper with it</button>
+        <button id="resetBtn" class="secondary">Reset to real receipt</button>
+      </div>
+      <p class="hint" style="margin-top:10px;">"Tamper with it" edits one close price in the JSON above and
+      re-verifies automatically — watch the hash check fail while the signature stays validly formed.</p>
+    </div>
+
+    <div id="resultsWrap" hidden>
+      <div class="results" id="results"></div>
+      <div class="decision-box" id="decisionBox"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+// ---------- ported from src/receipt/canon.ts ----------
+function canonical(value) {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
+  const keys = Object.keys(value).filter(k => value[k] !== undefined).sort();
+  return '{' + keys.map(k => JSON.stringify(k) + ':' + canonical(value[k])).join(',') + '}';
+}
+async function sha256Hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function hexToBytes(hex) {
+  const b = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < b.length; i++) b[i] = parseInt(hex.substr(i * 2, 2), 16);
+  return b;
+}
+function base64ToBytes(b64) {
+  const bin = atob(b64);
+  const b = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
+  return b;
+}
+function pemToBytes(pem) {
+  const b64 = pem.replace(/-----BEGIN [^-]+-----/, '').replace(/-----END [^-]+-----/, '').replace(/\s+/g, '');
+  return base64ToBytes(b64);
+}
+
+// ---------- ported from src/agent/policy.ts ----------
+const CHARTER = {
+  maxNotionalUsd: 200, maxLeverage: 3, allowedSymbols: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
+  maxPositionPctOfEquity: 25, maxOpenPositions: 3, blockAfterConsecutiveLosses: 2
+};
+function evaluatePolicy(order, snap, c) {
+  const checks = [];
+  const add = (id, pass, detail) => checks.push({ id, pass, detail });
+  if (order.action === 'hold') { add('no-op', true, 'agent proposed hold'); return { checks, verdict: 'allow' }; }
+  const equity = Number(snap.account.equityUsd);
+  const notional = order.notionalUsd ?? 0;
+  const leverage = order.leverage ?? 1;
+  const pnl = snap.account.recentPnl;
+  let losses = 0;
+  for (let i = pnl.length - 1; i >= 0 && pnl[i] < 0; i--) losses++;
+  add('symbol-allowed', c.allowedSymbols.includes(order.symbol ?? ''), `${order.symbol} vs allowed [${c.allowedSymbols.join(', ')}]`);
+  add('notional-cap', notional <= c.maxNotionalUsd, `$${notional} vs cap $${c.maxNotionalUsd}`);
+  add('leverage-cap', leverage <= c.maxLeverage, `${leverage}x vs cap ${c.maxLeverage}x`);
+  add('position-pct', equity > 0 && (notional / equity) * 100 <= c.maxPositionPctOfEquity,
+      `${equity > 0 ? ((notional / equity) * 100).toFixed(1) : 'n/a'}% vs cap ${c.maxPositionPctOfEquity}%`);
+  add('open-positions', snap.account.positions.length < c.maxOpenPositions, `${snap.account.positions.length} open vs max ${c.maxOpenPositions}`);
+  add('losing-streak', losses < c.blockAfterConsecutiveLosses, `${losses} consecutive losses vs limit ${c.blockAfterConsecutiveLosses}`);
+  return { checks, verdict: checks.every(k => k.pass) ? 'allow' : 'block' };
+}
+
+// ---------- ported from src/agent/decide.ts ----------
+function buildPrompt(snap, c) {
+  const markets = snap.symbols.map((s) => {
+    const closes = s.klines1h.map((k) => Number(k[4]));
+    const change24h = closes.length >= 24 ? (((closes.at(-1) - closes.at(-24)) / closes.at(-24)) * 100).toFixed(2) : 'n/a';
+    return [
+      `${s.symbol}: last=${s.lastPrice} bid=${s.bestBid} ask=${s.bestAsk}`,
+      `  24h change: ${change24h}%  funding: ${s.fundingRate ?? 'n/a'}`,
+      `  1h closes (last 12): ${closes.slice(-12).join(', ')}`,
+    ].join('\n');
+  }).join('\n');
+  return [
+    'You are a disciplined crypto trading analyst. Propose at most one action.', '',
+    'CHARTER (hard limits, enforced separately — do not propose violations):',
+    `  max notional $${c.maxNotionalUsd}, max leverage ${c.maxLeverage}x`,
+    `  allowed symbols: ${c.allowedSymbols.join(', ')}`, '',
+    'ACCOUNT:', `  equity: $${snap.account.equityUsd}`, `  open positions: ${snap.account.positions.length}`,
+    `  recent trade PnL: ${snap.account.recentPnl.join(', ') || 'none'}`, '', 'MARKETS:', markets, '',
+    'Reply with ONLY a JSON object: {"action":"trade"|"hold","symbol":string,',
+    '"side":"BUY"|"SELL","notionalUsd":number,"leverage":number,',
+    '"reasoning":string,"confidence":number}',
+  ].join('\n');
+}
+function offlineModel(snap, c) {
+  let best = null;
+  for (const s of snap.symbols) {
+    if (!c.allowedSymbols.includes(s.symbol)) continue;
+    const closes = s.klines1h.map((k) => Number(k[4]));
+    if (closes.length < 12) continue;
+    const mom = (closes.at(-1) - closes.at(-12)) / closes.at(-12);
+    if (!best || Math.abs(mom) > Math.abs(best.mom)) best = { symbol: s.symbol, mom };
+  }
+  if (!best || Math.abs(best.mom) < 0.01) {
+    return { action: 'hold', reasoning: 'no symbol showed 12h momentum above the 1% threshold', confidence: 0.5 };
+  }
+  return {
+    action: 'trade', symbol: best.symbol, side: best.mom > 0 ? 'BUY' : 'SELL',
+    notionalUsd: Math.min(100, c.maxNotionalUsd), leverage: 1,
+    reasoning: `12h momentum on ${best.symbol} is ${(best.mom * 100).toFixed(2)}%, the strongest in the allowed set`,
+    confidence: Math.min(0.9, 0.5 + Math.abs(best.mom) * 10),
+  };
+}
+
+// ---------- verification ----------
+async function verifyEd25519(pemPubkey, hashHex, sigB64) {
+  const key = await crypto.subtle.importKey('spki', pemToBytes(pemPubkey), { name: 'Ed25519' }, false, ['verify']);
+  return crypto.subtle.verify({ name: 'Ed25519' }, key, base64ToBytes(sigB64), hexToBytes(hashHex));
+}
+
+function row(label, status, detail) {
+  const pillClass = status === true ? 'ok' : status === false ? 'bad' : 'info';
+  const pillText = status === true ? 'valid' : status === false ? 'invalid' : status;
+  return `<div class="row"><div><div class="row-label">${label}</div>${detail ? `<div class="row-detail">${detail}</div>` : ''}</div><span class="pill ${pillClass}">${pillText}</span></div>`;
+}
+
+async function runVerify() {
+  const resultsEl = document.getElementById('results');
+  const decisionEl = document.getElementById('decisionBox');
+  const wrap = document.getElementById('resultsWrap');
+  let receipt, pubkey;
+  try {
+    receipt = JSON.parse(document.getElementById('receiptInput').value);
+    pubkey = document.getElementById('pubkeyInput').value.trim();
+  } catch (e) {
+    resultsEl.innerHTML = row('JSON parse', false, 'Could not parse the receipt as JSON: ' + e.message);
+    decisionEl.innerHTML = '';
+    wrap.hidden = false;
+    return;
+  }
+
+  const { hash, sig, ...body } = receipt;
+  const recomputedHash = await sha256Hex(canonical(body));
+  const hashOk = recomputedHash === hash;
+
+  let sigOk = false, sigErr = '';
+  try { sigOk = await verifyEd25519(pubkey, hash, sig); }
+  catch (e) { sigErr = e.message; }
+
+  const chainInfo = receipt.prev === null
+    ? 'genesis receipt (prev: null) — first in its log'
+    : `links to previous receipt hash ${receipt.prev.slice(0, 16)}… (full chain verification needs the whole log)`;
+
+  let html = '';
+  html += row('Content hash', hashOk, `recomputed ${recomputedHash.slice(0,16)}… ${hashOk ? '==' : '!='} stored ${hash.slice(0,16)}…`);
+  html += row('Signature', sigOk, sigErr ? sigErr : `ed25519 over the stored hash, checked against agent.pub`);
+  html += row('Chain position', 'info', chainInfo);
+  resultsEl.innerHTML = html;
+
+  // Re-derive the decision from the frozen snapshot -- the same thing
+  // `npm run replay` does, ported to the browser.
+  try {
+    const snap = receipt.snapshot;
+    const prompt = buildPrompt(snap, CHARTER);
+    const promptHash = await sha256Hex(prompt);
+    const promptOk = promptHash === receipt.decision.promptHash;
+    const parsed = offlineModel(snap, CHARTER);
+    const policy = evaluatePolicy(parsed, snap, CHARTER);
+    const decisionMatches = JSON.stringify(parsed) === JSON.stringify(receipt.decision.parsed);
+    const verdictMatches = policy.verdict === receipt.policy.verdict;
+
+    decisionEl.innerHTML = `
+      <div class="label" style="margin-bottom:10px;">Re-derived decision (offline momentum model, same as <code>npm run replay</code>)</div>
+      <div>prompt hash: <code>${promptOk ? 'matches' : 'DIVERGED'}</code></div>
+      <div>proposal: <code>${parsed.action === 'hold' ? 'HOLD' : `${parsed.side} ${parsed.symbol} $${parsed.notionalUsd} @ ${parsed.leverage}x`}</code>
+        ${decisionMatches ? '<span class="pill ok" style="margin-left:8px;">identical</span>' : '<span class="pill bad" style="margin-left:8px;">diverged</span>'}</div>
+      <div>policy verdict: <code>${policy.verdict.toUpperCase()}</code>
+        ${verdictMatches ? '<span class="pill ok" style="margin-left:8px;">matches recorded outcome</span>' : '<span class="pill bad" style="margin-left:8px;">diverged</span>'}</div>
+    `;
+  } catch (e) {
+    decisionEl.innerHTML = `<div class="row-detail">Could not re-derive a decision from this snapshot: ${e.message}</div>`;
+  }
+
+  wrap.hidden = false;
+}
+
+document.getElementById('verifyBtn').addEventListener('click', runVerify);
+
+document.getElementById('tamperBtn').addEventListener('click', () => {
+  const ta = document.getElementById('receiptInput');
+  try {
+    const r = JSON.parse(ta.value);
+    const kl = r.snapshot.symbols[0].klines1h;
+    const last = kl[kl.length - 1];
+    last[4] = String((Number(last[4]) * 1.15).toFixed(8));
+    ta.value = JSON.stringify(r, null, 2);
+  } catch (e) { /* invalid JSON, nothing to tamper with */ }
+  runVerify();
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  document.getElementById('receiptInput').value = JSON.stringify(REAL_RECEIPT, null, 2);
+  document.getElementById('pubkeyInput').value = REAL_PUBKEY;
+  runVerify();
+});
+
+// Real receipt, captured live against Binance Agent OS on 2026-09-08.
+// The agent proposed selling $100 of SOLUSDT on -1.65% 12h momentum; the
+// policy engine blocked it because the sub-account has zero equity.
+const REAL_RECEIPT = {"version":1,"seq":0,"prev":null,"ts":"2026-09-08T12:18:05.537Z","agent":{"name":"0xwitness-momentum","version":"0.1.0","charterHash":"7a7e4b4761700bcf131267690b9247d8d53f023f6a32c6dbf0d522d2b5153f24"},"snapshot":{"capturedAt":"2026-09-08T12:18:05.535Z","source":"live","symbols":[{"symbol":"BTCUSDT","lastPrice":"78238.91000000","klines1h":[[1788699600000,"79922.04000000","79968.00000000","79760.39000000","79829.98000000","380.28916000"],[1788703200000,"79829.99000000","79840.25000000","79233.00000000","79543.06000000","699.69504000"],[1788706800000,"79543.07000000","79734.59000000","79383.32000000","79716.50000000","342.10102000"],[1788710400000,"79716.51000000","79786.00000000","79606.04000000","79682.00000000","222.29132000"],[1788714000000,"79682.00000000","79773.88000000","79584.73000000","79745.34000000","205.07571000"],[1788717600000,"79745.34000000","79970.00000000","79745.34000000","79955.34000000","218.34399000"],[1788721200000,"79955.34000000","79955.34000000","79799.52000000","79829.99000000","213.50154000"],[1788724800000,"79830.00000000","79973.56000000","79776.59000000","79912.00000000","235.83849000"],[1788728400000,"79912.00000000","80034.00000000","79875.24000000","79944.38000000","381.14031000"],[1788732000000,"79944.39000000","80093.79000000","79647.04000000","80055.17000000","486.73578000"],[1788735600000,"80055.18000000","80559.99000000","80010.00000000","80341.83000000","896.09908000"],[1788739200000,"80341.83000000","80443.99000000","80059.11000000","80160.01000000","473.23720000"],[1788742800000,"80160.01000000","80243.81000000","79826.28000000","79926.14000000","429.22190000"],[1788746400000,"79926.14000000","80426.00000000","79800.00000000","79874.24000000","411.23362000"],[1788750000000,"79874.25000000","79986.02000000","79568.60000000","79596.39000000","424.23144000"],[1788753600000,"79596.38000000","79732.15000000","79540.38000000","79724.00000000","680.36024000"],[1788757200000,"79724.01000000","79926.04000000","79666.79000000","79759.47000000","625.29002000"],[1788760800000,"79759.47000000","79825.70000000","79644.55000000","79659.27000000","564.03546000"],[1788764400000,"79659.28000000","79691.06000000","79001.10000000","79397.83000000","867.88528000"],[1788768000000,"79397.83000000","79530.47000000","79397.83000000","79437.38000000","367.39664000"],[1788771600000,"79437.39000000","79550.00000000","79291.15000000","79313.85000000","384.36999000"],[1788775200000,"79313.85000000","79459.50000000","79313.85000000","79360.00000000","340.14563000"],[1788778800000,"79360.00000000","79487.01000000","79282.00000000","79420.16000000","322.16899000"],[1788782400000,"79420.16000000","79627.43000000","79400.48000000","79606.84000000","278.61012000"],[1788786000000,"79606.84000000","79643.50000000","79318.92000000","79352.01000000","537.87474000"],[1788789600000,"79352.00000000","79396.36000000","78956.94000000","79191.95000000","729.96261000"],[1788793200000,"79191.96000000","79191.96000000","78680.00000000","78821.99000000","790.15811000"],[1788796800000,"78822.00000000","79035.23000000","78807.69000000","79028.87000000","428.99902000"],[1788800400000,"79028.88000000","79223.53000000","79018.00000000","79185.73000000","251.37537000"],[1788804000000,"79185.74000000","79244.00000000","79096.00000000","79196.16000000","308.24543000"],[1788807600000,"79196.15000000","79419.17000000","79150.00000000","79365.82000000","230.49171000"],[1788811200000,"79365.81000000","79394.92000000","79168.01000000","79238.00000000","212.62445000"],[1788814800000,"79238.00000000","79278.00000000","79164.00000000","79164.00000000","163.69203000"],[1788818400000,"79164.01000000","79218.18000000","78781.07000000","78952.19000000","458.00504000"],[1788822000000,"78952.18000000","79210.00000000","78938.38000000","79112.01000000","292.83991000"],[1788825600000,"79112.00000000","79313.09000000","78972.51000000","79313.08000000","445.07914000"],[1788829200000,"79313.09000000","79463.06000000","79266.48000000","79441.99000000","454.81703000"],[1788832800000,"79441.98000000","79485.00000000","78930.00000000","78930.01000000","601.51271000"],[1788836400000,"78930.01000000","79002.00000000","78725.10000000","78906.28000000","813.22360000"],[1788840000000,"78906.27000000","78929.24000000","78678.70000000","78678.71000000","558.10183000"],[1788843600000,"78678.70000000","78882.00000000","78555.00000000","78578.00000000","847.29044000"],[1788847200000,"78577.99000000","78632.00000000","78261.61000000","78323.59000000","1913.91469000"],[1788850800000,"78323.59000000","78609.99000000","78179.98000000","78482.00000000","3433.75725000"],[1788854400000,"78482.00000000","78581.80000000","78281.30000000","78418.00000000","855.40310000"],[1788858000000,"78418.00000000","78800.00000000","78317.03000000","78761.99000000","641.52148000"],[1788861600000,"78762.00000000","78994.50000000","78568.00000000","78568.00000000","435.62963000"],[1788865200000,"78568.01000000","78576.00000000","78271.63000000","78430.01000000","682.36626000"],[1788868800000,"78430.00000000","78430.01000000","78215.36000000","78238.91000000","281.25058000"]],"fundingRate":null,"bestBid":"78238.91000000","bestAsk":"78238.92000000"},{"symbol":"ETHUSDT","lastPrice":"2471.78000000","klines1h":[[1788699600000,"2500.48000000","2500.94000000","2486.76000000","2494.85000000","7424.18270000"],[1788703200000,"2494.84000000","2495.02000000","2460.92000000","2478.40000000","23430.27120000"],[1788706800000,"2478.40000000","2482.74000000","2470.12000000","2479.79000000","8155.87880000"],[1788710400000,"2479.78000000","2487.54000000","2475.26000000","2484.57000000","5831.71350000"],[1788714000000,"2484.57000000","2494.68000000","2480.45000000","2491.25000000","6966.93090000"],[1788717600000,"2491.25000000","2500.00000000","2491.25000000","2494.15000000","7061.52640000"],[1788721200000,"2494.15000000","2494.42000000","2488.88000000","2490.42000000","7349.07520000"],[1788724800000,"2490.42000000","2500.00000000","2488.55000000","2499.44000000","8435.50740000"],[1788728400000,"2499.43000000","2515.69000000","2499.36000000","2508.09000000","10414.48860000"],[1788732000000,"2508.08000000","2510.89000000","2488.80000000","2508.32000000","12177.02170000"],[1788735600000,"2508.33000000","2526.20000000","2506.79000000","2514.48000000","12892.14620000"],[1788739200000,"2514.48000000","2522.52000000","2509.38000000","2513.17000000","8399.60480000"],[1788742800000,"2513.17000000","2516.34000000","2499.36000000","2503.87000000","11036.61790000"],[1788746400000,"2503.87000000","2536.64000000","2498.56000000","2511.77000000","17172.50620000"],[1788750000000,"2511.76000000","2516.23000000","2496.72000000","2497.43000000","12570.11040000"],[1788753600000,"2497.43000000","2499.89000000","2492.39000000","2498.33000000","10256.47570000"],[1788757200000,"2498.33000000","2514.03000000","2497.25000000","2504.80000000","11248.48050000"],[1788760800000,"2504.81000000","2510.00000000","2497.69000000","2497.74000000","7795.55070000"],[1788764400000,"2497.75000000","2502.00000000","2475.12000000","2489.35000000","22000.85970000"],[1788768000000,"2489.34000000","2494.00000000","2488.85000000","2491.56000000","8887.79260000"],[1788771600000,"2491.56000000","2497.46000000","2484.42000000","2484.76000000","9354.90670000"],[1788775200000,"2484.76000000","2492.64000000","2484.76000000","2489.01000000","9291.12030000"],[1788778800000,"2489.01000000","2493.62000000","2486.42000000","2489.15000000","8585.63580000"],[1788782400000,"2489.16000000","2507.60000000","2488.50000000","2505.48000000","11240.70240000"],[1788786000000,"2505.48000000","2511.40000000","2495.70000000","2498.86000000","9727.22030000"],[1788789600000,"2498.87000000","2499.75000000","2476.40000000","2490.29000000","16693.80010000"],[1788793200000,"2490.29000000","2490.29000000","2466.00000000","2470.43000000","19585.85850000"],[1788796800000,"2470.44000000","2483.03000000","2470.30000000","2482.80000000","9548.43300000"],[1788800400000,"2482.81000000","2499.40000000","2482.23000000","2495.42000000","10696.21330000"],[1788804000000,"2495.42000000","2497.31000000","2487.31000000","2491.79000000","5656.63960000"],[1788807600000,"2491.79000000","2497.74000000","2489.20000000","2495.98000000","7987.07920000"],[1788811200000,"2495.98000000","2497.30000000","2487.10000000","2494.76000000","10885.07180000"],[1788814800000,"2494.76000000","2496.69000000","2490.30000000","2491.09000000","5497.82010000"],[1788818400000,"2491.10000000","2492.13000000","2475.31000000","2483.06000000","7447.75700000"],[1788822000000,"2483.06000000","2493.91000000","2482.25000000","2490.16000000","4881.92640000"],[1788825600000,"2490.16000000","2495.72000000","2483.45000000","2495.71000000","6506.18210000"],[1788829200000,"2495.71000000","2505.46000000","2493.48000000","2504.31000000","8067.83300000"],[1788832800000,"2504.32000000","2507.99000000","2484.71000000","2484.72000000","7696.81750000"],[1788836400000,"2484.72000000","2488.34000000","2478.00000000","2486.04000000","8947.15420000"],[1788840000000,"2486.05000000","2486.33000000","2478.91000000","2478.99000000","5979.18860000"],[1788843600000,"2478.99000000","2484.58000000","2472.50000000","2473.38000000","11039.27300000"],[1788847200000,"2473.39000000","2477.22000000","2463.00000000","2468.53000000","15556.68090000"],[1788850800000,"2468.52000000","2485.00000000","2467.99000000","2479.63000000","11789.09890000"],[1788854400000,"2479.63000000","2483.53000000","2469.08000000","2477.58000000","7648.03750000"],[1788858000000,"2477.58000000","2495.56000000","2475.86000000","2492.01000000","10072.55700000"],[1788861600000,"2492.00000000","2500.00000000","2481.24000000","2481.24000000","10805.31440000"],[1788865200000,"2481.25000000","2482.56000000","2471.63000000","2474.76000000","9686.76390000"],[1788868800000,"2474.75000000","2474.75000000","2468.26000000","2471.78000000","3054.50950000"]],"fundingRate":null,"bestBid":"2471.78000000","bestAsk":"2471.79000000"},{"symbol":"SOLUSDT","lastPrice":"102.67000000","klines1h":[[1788699600000,"106.81000000","107.17000000","105.92000000","107.08000000","157367.20700000"],[1788703200000,"107.09000000","107.12000000","105.17000000","105.74000000","204032.69700000"],[1788706800000,"105.74000000","105.99000000","104.93000000","105.76000000","126276.02400000"],[1788710400000,"105.75000000","106.38000000","105.49000000","106.09000000","79216.30500000"],[1788714000000,"106.09000000","106.44000000","105.57000000","106.19000000","82219.66400000"],[1788717600000,"106.20000000","106.59000000","105.85000000","105.98000000","61540.74500000"],[1788721200000,"105.98000000","105.99000000","105.36000000","105.48000000","58327.19100000"],[1788724800000,"105.49000000","105.87000000","105.36000000","105.73000000","54695.56200000"],[1788728400000,"105.73000000","106.25000000","105.73000000","105.93000000","53505.66000000"],[1788732000000,"105.93000000","106.04000000","104.97000000","105.85000000","89941.83900000"],[1788735600000,"105.86000000","106.77000000","105.81000000","106.55000000","93587.57100000"],[1788739200000,"106.55000000","106.65000000","105.89000000","106.16000000","107983.36500000"],[1788742800000,"106.16000000","106.35000000","105.06000000","105.32000000","96919.13200000"],[1788746400000,"105.33000000","107.06000000","104.93000000","105.80000000","136671.39600000"],[1788750000000,"105.80000000","105.90000000","104.93000000","104.95000000","120130.81700000"],[1788753600000,"104.95000000","105.30000000","104.75000000","105.09000000","112469.26400000"],[1788757200000,"105.09000000","105.83000000","105.05000000","105.12000000","84038.37300000"],[1788760800000,"105.13000000","105.40000000","104.87000000","105.08000000","83555.89900000"],[1788764400000,"105.08000000","105.54000000","103.80000000","104.48000000","189914.19100000"],[1788768000000,"104.48000000","104.90000000","104.41000000","104.71000000","93508.04800000"],[1788771600000,"104.70000000","105.18000000","104.60000000","104.66000000","102739.60600000"],[1788775200000,"104.67000000","105.15000000","104.66000000","105.01000000","57899.92600000"],[1788778800000,"105.01000000","105.14000000","104.74000000","104.92000000","56852.88700000"],[1788782400000,"104.93000000","105.93000000","104.90000000","105.74000000","80493.06400000"],[1788786000000,"105.74000000","105.84000000","104.83000000","105.09000000","92086.86100000"],[1788789600000,"105.08000000","105.19000000","104.03000000","104.66000000","142432.88200000"],[1788793200000,"104.66000000","104.67000000","102.96000000","103.26000000","171681.86900000"],[1788796800000,"103.27000000","103.88000000","103.21000000","103.88000000","57530.61000000"],[1788800400000,"103.87000000","104.25000000","103.80000000","104.00000000","54107.30700000"],[1788804000000,"104.00000000","104.09000000","103.58000000","103.91000000","70306.46600000"],[1788807600000,"103.91000000","104.43000000","103.81000000","104.35000000","39785.06800000"],[1788811200000,"104.36000000","104.41000000","103.92000000","104.10000000","52995.71300000"],[1788814800000,"104.10000000","104.16000000","103.80000000","103.91000000","39207.06500000"],[1788818400000,"103.91000000","104.07000000","103.18000000","103.55000000","74062.05500000"],[1788822000000,"103.54000000","104.04000000","103.50000000","103.80000000","78949.97300000"],[1788825600000,"103.81000000","104.16000000","103.45000000","104.09000000","72379.60000000"],[1788829200000,"104.09000000","104.43000000","104.01000000","104.39000000","75150.02700000"],[1788832800000,"104.40000000","104.53000000","103.29000000","103.30000000","83035.41500000"],[1788836400000,"103.29000000","103.45000000","102.74000000","103.36000000","116641.98800000"],[1788840000000,"103.36000000","103.46000000","103.00000000","103.00000000","62233.43900000"],[1788843600000,"103.01000000","103.51000000","102.89000000","102.96000000","103270.61300000"],[1788847200000,"102.97000000","103.10000000","102.44000000","102.68000000","125172.14900000"],[1788850800000,"102.69000000","103.14000000","102.61000000","102.95000000","69437.37600000"],[1788854400000,"102.95000000","103.50000000","102.49000000","103.05000000","75495.41000000"],[1788858000000,"103.04000000","103.85000000","102.93000000","103.69000000","73487.89700000"],[1788861600000,"103.70000000","104.09000000","103.39000000","103.39000000","73114.01700000"],[1788865200000,"103.40000000","103.46000000","102.66000000","102.87000000","77338.62100000"],[1788868800000,"102.88000000","102.88000000","102.50000000","102.67000000","30670.67200000"]],"fundingRate":null,"bestBid":"102.67000000","bestAsk":"102.68000000"}],"account":{"equityUsd":"0","positions":[],"recentPnl":[]}},"snapshotHash":"cfe2d56a5590aecd464dc2169f98819e91c10ec765188856df74be7ff6de9b39","decision":{"prompt":"You are a disciplined crypto trading analyst. Propose at most one action.\n\nCHARTER (hard limits, enforced separately — do not propose violations):\n  max notional $200, max leverage 3x\n  allowed symbols: BTCUSDT, ETHUSDT, SOLUSDT\n\nACCOUNT:\n  equity: $0\n  open positions: 0\n  recent trade PnL: none\n\nMARKETS:\nBTCUSDT: last=78238.91000000 bid=78238.91000000 ask=78238.92000000\n  24h change: -1.40%  funding: n/a\n  1h closes (last 12): 79441.99, 78930.01, 78906.28, 78678.71, 78578, 78323.59, 78482, 78418, 78761.99, 78568, 78430.01, 78238.91\nETHUSDT: last=2471.78000000 bid=2471.78000000 ask=2471.79000000\n  24h change: -1.08%  funding: n/a\n  1h closes (last 12): 2504.31, 2484.72, 2486.04, 2478.99, 2473.38, 2468.53, 2479.63, 2477.58, 2492.01, 2481.24, 2474.76, 2471.78\nSOLUSDT: last=102.67000000 bid=102.67000000 ask=102.68000000\n  24h change: -2.30%  funding: n/a\n  1h closes (last 12): 104.39, 103.3, 103.36, 103, 102.96, 102.68, 102.95, 103.05, 103.69, 103.39, 102.87, 102.67\n\nReply with ONLY a JSON object: {\"action\":\"trade\"|\"hold\",\"symbol\":string,\n\"side\":\"BUY\"|\"SELL\",\"notionalUsd\":number,\"leverage\":number,\n\"reasoning\":string,\"confidence\":number}","promptHash":"9d34aa1020ffa2b9bc81e7b275933d1e4ed2ea95e9e7b1d0c89fbcd5a9d83cf5","temperature":0,"model":"offline-momentum-v1","rawOutput":"{\"action\":\"trade\",\"symbol\":\"SOLUSDT\",\"side\":\"SELL\",\"notionalUsd\":100,\"leverage\":1,\"reasoning\":\"12h momentum on SOLUSDT is -1.65%, the strongest in the allowed set\",\"confidence\":0.6647667401092057}","parsed":{"action":"trade","symbol":"SOLUSDT","side":"SELL","notionalUsd":100,"leverage":1,"reasoning":"12h momentum on SOLUSDT is -1.65%, the strongest in the allowed set","confidence":0.6647667401092057}},"policy":{"checks":[{"id":"symbol-allowed","pass":true,"detail":"SOLUSDT vs allowed [BTCUSDT, ETHUSDT, SOLUSDT]"},{"id":"notional-cap","pass":true,"detail":"$100 vs cap $200"},{"id":"leverage-cap","pass":true,"detail":"1x vs cap 3x"},{"id":"position-pct","pass":false,"detail":"n/a% vs cap 25%"},{"id":"open-positions","pass":true,"detail":"0 open vs max 3"},{"id":"losing-streak","pass":true,"detail":"0 consecutive losses vs limit 2"}],"verdict":"block"},"outcome":{"submitted":false,"note":"blocked: position-pct"},"hash":"bc12ef91e94f936cedc614491d46a7c2812241939a523babc3b212acd5f99474","sig":"0MucgD0+SB0JbTUmJoMXs/dzgYEpSd3rOJsQ/oX2EeRSRiPj/0cRTzGSgUa/tqzZbUHESO7UaYrzLgzeGLjLBw=="};
+const REAL_PUBKEY = "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA7rr3tFWpfAeITS9BdG//kf/EEh5isUpRixRmnOBkINM=\n-----END PUBLIC KEY-----";
+
+document.getElementById('receiptInput').value = JSON.stringify(REAL_RECEIPT, null, 2);
+document.getElementById('pubkeyInput').value = REAL_PUBKEY;
+runVerify();
+</script>
+</body>
+</html>
