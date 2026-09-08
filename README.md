@@ -5,15 +5,15 @@
 
 **A flight recorder for AI trading agents on Binance Agent OS.**
 
-Every other agent asks you to trust it. This one hands you the evidence — signed,
+Every other agent asks you to trust it. This one hands you the evidence, signed,
 so it can testify for itself.
 
 Each decision emits a signed, hash-chained **receipt** containing the exact market
 snapshot the agent saw, the exact prompt it was given, the model output, the policy
 checks, and the outcome. Anyone can clone this repo and re-derive the decision from
-the receipt alone — no API key, no network, no trusting our screenshots.
+the receipt alone, no API key, no network, no trusting our screenshots.
 
-**Live site:** [0xwitness.vercel.app](https://0xwitness.vercel.app) · [docs](https://0xwitness.vercel.app/docs.html)
+**Live site:** [0xwitness.vercel.app](https://0xwitness.vercel.app) · [docs](https://0xwitness.vercel.app/docs) · [verify a receipt in your browser](https://0xwitness.vercel.app/verify)
 
 ```
 npx --yes . demo        # or: npm run keys && npm run fixture && npm run run -- --offline
@@ -21,14 +21,64 @@ npx --yes . demo        # or: npm run keys && npm run fixture && npm run run -- 
 
 ## Why this exists
 
-When an AI agent loses your money, you get a P&L number and a vibe. The market has
-moved, the model is nondeterministic, the prompt may have changed. There is no way
-to reconstruct what it saw or why it acted — which is exactly why nobody sensible
-hands one real size.
+Agent OS's own safety pitch is real: isolated sub-accounts, no withdrawal scope
+ever, human confirmation on every non-read action. That solves the *authority*
+problem, whether an agent is allowed to act. It does not solve the *evidence*
+problem: once it has acted, what do you actually have to check its work?
 
-Agent OS solves the *authority* problem well: isolated sub-accounts, no withdrawal
-scope, human confirmation on every action. It does not solve the *evidence* problem.
-That is the gap this fills.
+When an AI trading agent loses money, the honest answer is usually a P&L number
+and a vibe. The market moved, the model is nondeterministic by nature, the prompt
+might have changed since. There is no way to reconstruct what it saw or why it
+decided what it decided. Every hackathon entry in this space was going to compete
+on the authority axis, since that's what Agent OS already gives you for free.
+0xWitness is an attempt to answer the other one: not "was the agent allowed to
+trade," but "can a stranger check, without trusting me, exactly what it saw and
+why it acted."
+
+That's the whole pitch. Not "trust our agent," but "here's a signed record, go
+check it yourself."
+
+### What broke, and what that proved
+
+The policy engine that blocks or allows a trade is deliberately arithmetic, not
+another LLM, six plain checks (notional cap, leverage cap, symbol allowlist,
+position concentration, open positions, losing streak). An LLM can be talked out
+of a rule by a good enough prompt. Arithmetic can't be, and it replays identically
+forever, which is the whole point of a receipt.
+
+The pipeline was also built offline-first on purpose, a deterministic momentum
+strategy and a seeded fixture generator, before the live API was ever touched.
+That let the entire chain of custody get proven with zero network calls and zero
+API key, verifiable by anyone in under two seconds. When the live Binance Agent OS
+integration was finally wired up against a real OAuth session, it turned out to be
+wrong in three separate ways that reading the documentation alone never surfaces:
+the server's own setup instructions describe one tool-naming convention
+(`create_spot_newOrder`) while the real API uses another (`spot.newOrder`); its
+tool list is paginated, with spot and wallet tools sitting on a second page an
+integration that lists once will never see; and a piece of TypeScript syntax in
+the live client would have crashed on import regardless, before a single network
+call, for reasons that had nothing to do with Binance at all. All three were found
+by actually running it against the real server instead of trusting that careful
+reading was equivalent to testing. It wasn't.
+
+Once fixed, the first real run produced something better than anything staged: the
+agent captured real BTCUSDT/ETHUSDT/SOLUSDT prices, proposed selling $100 of
+SOLUSDT on real momentum, and the policy engine blocked it, correctly, because the
+sub-account had zero equity and the charter refused to let an undefined risk
+calculation pass as a yes. A system that only ever demos the happy path hasn't
+proven its safety claims. One that shows its own brakes working, on the real
+exchange, has.
+
+The same pattern showed up again later with a 34-test automated suite added
+late in the build: every test passed locally on the first try, and the first CI
+run against a genuinely clean checkout still failed, because the folder holding
+the signing key is gitignored entirely and nothing had ever created it on a fresh
+clone. Invisible on the machine that already had the folder from earlier runs,
+immediately visible to CI. Fixed and verified by literally moving the local data
+directory aside and re-running the suite clean.
+
+Full account of the build, including why 0xWitness deliberately stayed an MCP
+*client* rather than also becoming a server: **[ARTICLE.md](ARTICLE.md)**.
 
 ## Verify it yourself
 
@@ -44,7 +94,7 @@ Replay prints `IDENTICAL`. Now break it:
 
 ```bash
 npm run tamper -- --seq 0          # edit one close price inside a sealed receipt
-npm run verify                     # hash=bad — the record no longer matches its hash
+npm run verify                     # hash=bad, the record no longer matches its hash
 npm run replay -- --seq 0 --offline # ALTERED, and the decision visibly changes
 ```
 
@@ -56,10 +106,10 @@ That is the whole claim, and you just checked it without trusting us.
 |---|---|
 | `snapshot` | Every kline, funding rate and book level the agent saw, frozen. Replay never re-fetches. |
 | `snapshotHash` | Detects edits to the market data. |
-| `decision.prompt` + `promptHash` | The literal prompt. Built purely from the snapshot — no clock, no ambient state. |
+| `decision.prompt` + `promptHash` | The literal prompt. Built purely from the snapshot: no clock, no ambient state. |
 | `decision.rawOutput` | What the model actually said, before parsing. |
 | `policy.checks` | Each deterministic charter check with its arithmetic shown. |
-| `outcome` | Submitted or blocked, and why. **Blocked proposals are recorded too** — a log of only the trades you took is a highlight reel, not an audit trail. |
+| `outcome` | Submitted or blocked, and why. **Blocked proposals are recorded too**: a log of only the trades you took is a highlight reel, not an audit trail. |
 | `prev` + `hash` + `sig` | Hash chain plus ed25519 signature: nothing can be edited, deleted, reordered or forged. |
 
 ## Architecture
@@ -81,8 +131,8 @@ That is the whole claim, and you just checked it without trusting us.
 The agent reaches the world only through `Transport`. Live and replay differ by
 one swap, so reproduction is exact, not approximate.
 
-The policy engine is deliberately *not* an LLM. Charter limits — notional, leverage,
-symbol scope, position concentration, losing-streak — are arithmetic, so they replay
+The policy engine is deliberately *not* an LLM. Charter limits (notional, leverage,
+symbol scope, position concentration, losing-streak) are arithmetic, so they replay
 identically forever and cannot be argued out of by a persuasive prompt.
 
 ## What this does not claim
@@ -109,7 +159,7 @@ execute anything by itself. And it's market orders only for now, no limit, stop-
 take-profit types wired up yet.
 
 **A full live account picture.** `equityUsd` on live snapshots is the USDT balance, not a
-true portfolio value across every asset. `recentPnl` is always empty live — there's no
+true portfolio value across every asset. `recentPnl` is always empty live: there's no
 trade-history-derived P&L series wired up yet, so the losing-streak check reads it as zero
 consecutive losses (permissive, never a false block, but not a real behavioral read either).
 `entryPrice` on live positions is `null` for the same reason: Binance's account endpoint
@@ -131,7 +181,7 @@ transport-agnostic.
 OAuth session: real klines and prices for BTCUSDT/ETHUSDT/SOLUSDT, a real decision, and a
 real policy block (the sub-account was unfunded, so `position-pct` correctly read `n/a`
 against zero equity and refused the trade rather than passing it). Spot has no funding
-rate — `fundingRate` is honestly `null` on live snapshots, not estimated. `equityUsd` is
+rate: `fundingRate` is honestly `null` on live snapshots, not estimated. `equityUsd` is
 approximated from the USDT balance, since spot accounts report balances, not a single
 equity figure.
 
@@ -185,15 +235,15 @@ Found while wiring up `src/mcp/live.ts` against the real server, in case it's us
   `{verb}_{product}_{operation}` pattern (e.g. `create_spot_newOrder`,
   `get_futures_usds_accountBalance`). The actual `tools/list` response uses dotted
   names instead (`spot.newOrder`, `futures_usds.futuresAccountBalanceV3`). An
-  integration built from the prose description alone — which is the natural first
-  thing to do — will call tool names that don't exist.
+  integration built from the prose description alone, which is the natural first
+  thing to do, will call tool names that don't exist.
 - `tools/list` is paginated (`nextCursor`), and it's not obvious from the first
   page: page one returns `analysis`, `convert`, `futures_coin`, `futures_usds` and
-  part of `margin` — 50 tools, no `spot` or `wallet` anywhere in it. Page two is
+  part of `margin`: 50 tools, no `spot` or `wallet` anywhere in it. Page two is
   where `spot.*` and `wallet.*` actually live. An integration that lists once and
   stops (a reasonable thing to do) will conclude spot trading isn't exposed at all.
 - Errors come back in the top-level JSON-RPC `error` field, not a per-call
-  `isError` flag on the result — and `error.message` is itself a JSON string in
+  `isError` flag on the result, and `error.message` is itself a JSON string in
   Binance's own REST error format (`{"code":-1121,"msg":"Invalid symbol."}`), so
   it needs a second parse to read programmatically.
 - Response shape isn't consistent across tools: some calls return `structuredContent`
