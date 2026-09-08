@@ -135,6 +135,16 @@ rate — `fundingRate` is honestly `null` on live snapshots, not estimated. `equ
 approximated from the USDT balance, since spot accounts report balances, not a single
 equity figure.
 
+## Install as a skill
+
+```bash
+npx skills add https://github.com/IamHarrie-Labs/0xwitness
+```
+
+The manifest lives at [`skills/0xwitness/SKILL.md`](skills/0xwitness/SKILL.md) (mirrored to
+`.agents/skills/0xwitness/`), documents every command, and links back to this README's
+honesty sections rather than repeating them.
+
 ## Layout
 
 ```
@@ -145,6 +155,7 @@ src/market/    seeded fixture generator
 src/cli/       run | replay | verify | tamper | keys | fixture
 site/          static marketing site (index.html + docs.html, no build step)
 test/          canon, policy, decision determinism, hash-chain tamper detection
+skills/        SKILL.md manifest for `npx skills add`, mirrored to .agents/skills/
 ```
 
 `site/index.html` is the landing page; `site/docs.html` covers the same ground as
