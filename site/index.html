@@ -46,9 +46,9 @@
       repeating-linear-gradient(90deg, var(--ink) 0, var(--ink) 1px, transparent 1px, transparent 64px);
   }
 
-  .label{ font-style:italic; font-size:11px; letter-spacing:.04em; }
-  .label-sm{ font-style:italic; font-size:11px; letter-spacing:.04em; color:var(--muted); }
-  .label-foot{ font-style:italic; font-size:10px; letter-spacing:.04em; line-height:1.8; color:var(--muted2); }
+  .label{ font-weight:600; font-size:11px; letter-spacing:.04em; text-transform:uppercase; }
+  .label-sm{ font-weight:600; font-size:11px; letter-spacing:.04em; color:var(--muted); text-transform:uppercase; }
+  .label-foot{ font-size:10px; letter-spacing:.04em; line-height:1.8; color:var(--muted2); }
 
   /* ---------- rail nav ---------- */
   .rail{
@@ -82,15 +82,18 @@
   .cta:hover, .cta:focus-visible{ transform:translateY(-2px); filter:brightness(1.05); }
 
   /* ---------- hero ---------- */
-  .hero-media{ margin-top:56px; display:grid; grid-template-areas:"stack"; }
-  .hero-img{
-    grid-area:stack; width:56%; max-width:680px;
-    display:block; justify-self:end; align-self:end;
+  /* Text and image sit side by side, each in its own column, so the text
+     never runs under the image and the whole hero stays short enough to
+     fit without scrolling -- stacking them (image above, then headline,
+     then paragraph, then button) was what pushed the button below the fold. */
+  .hero-flex{
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:clamp(28px,4vw,56px); margin-top:clamp(8px,2vw,20px);
   }
-  h1.hero-h1{
-    grid-area:stack; font-size:clamp(38px,7vw,84px); font-weight:700;
-    line-height:1.02; letter-spacing:-0.01em; margin:0; max-width:58%;
-    z-index:2; justify-self:start; align-self:end;
+  .hero-text{ flex:1 1 320px; max-width:50%; }
+  .hero-h1{
+    font-size:clamp(32px,4vw,60px); font-weight:700;
+    line-height:1.08; letter-spacing:-0.01em; margin:0;
   }
   .word-mask{ overflow:hidden; display:inline-block; vertical-align:top; }
   .word{
@@ -105,20 +108,17 @@
   .word-mask:nth-child(5) .word{ transition-delay:360ms; }
   .word-mask:nth-child(6) .word{ transition-delay:450ms; }
 
+  .hero-text .hero-footer-left{
+    margin-top:20px; max-width:46ch; color:var(--muted3); font-size:15px; line-height:1.6;
+  }
+  .hero-text .cta{ margin-top:22px; }
+
+  .hero-img{ flex:1 1 220px; max-width:40%; width:100%; height:auto; display:block; }
+
   .hero-footer-row{
     display:flex; justify-content:space-between; align-items:flex-end;
     gap:24px; flex-wrap:wrap; margin-top:56px;
   }
-  .hero-footer-left{ max-width:38ch; color:var(--muted3); font-size:16px; line-height:1.6; }
-
-  /* Hero specifically: paragraph, caption and button share the headline's left
-     edge and stack in one column, rather than splitting to opposite corners. */
-  [data-reveal="hero"] .hero-footer-row{
-    flex-direction:column; align-items:flex-start; margin-top:32px; gap:20px;
-  }
-  [data-reveal="hero"] .hero-footer-right{ align-items:flex-start; }
-  [data-reveal="hero"] .hero-footer-right .label-foot{ text-align:left; margin-bottom:0; order:1; }
-  [data-reveal="hero"] .hero-footer-right .cta{ order:0; }
   .hero-footer-right{ display:flex; flex-direction:column; align-items:flex-end; flex-shrink:0; }
   .hero-footer-right .label-foot{ margin-bottom:10px; text-align:right; }
 
@@ -152,7 +152,7 @@
   }
   .numeral-pair{ display:flex; align-items:flex-start; gap:6px; }
   .numeral-zero{ font-size:clamp(96px,16vw,220px); font-weight:700; color:var(--ink); line-height:.8; }
-  .numeral-deps{ font-style:italic; font-size:14px; font-weight:600; letter-spacing:.06em; color:var(--ink); margin-top:14px; }
+  .numeral-deps{ font-size:14px; font-weight:600; letter-spacing:.06em; color:var(--ink); margin-top:14px; }
   .numeral-right{ padding-bottom:22px; }
   .numeral-right .label{ color:var(--muted3); }
   .numeral-right p{ font-size:16px; line-height:1.6; color:var(--ink); max-width:52ch; margin-top:12px; }
@@ -173,8 +173,8 @@
   .tamper-grid .tamper-card:nth-child(6){ transition-delay:350ms; }
   .tamper-grid .tamper-card:nth-child(7){ transition-delay:420ms; }
   .tamper-grid .tamper-card:nth-child(8){ transition-delay:490ms; }
-  .tamper-cmd{ font-size:13px; color:var(--muted); }
-  .tamper-result{ font-style:italic; font-size:13px; margin-top:8px; line-height:1.6; }
+  .tamper-cmd{ font-size:14px; font-weight:600; color:var(--ink); }
+  .tamper-result{ font-size:13px; margin-top:8px; line-height:1.6; }
   .r-muted{ color:var(--muted); }
   .r-good{ color:var(--good); }
   .r-bad{ color:var(--bad); }
@@ -190,9 +190,9 @@
     .rail-top-row{ gap:16px; }
     .rail-mobile-links{ display:flex; gap:16px; }
     main{ margin-left:0; }
-    .hero-media{ margin-top:40px; display:flex; flex-direction:column; gap:20px; }
-    .hero-img{ width:100%; max-width:560px; }
-    h1.hero-h1{ max-width:none; margin:0; }
+    .hero-flex{ flex-direction:column-reverse; margin-top:24px; gap:24px; }
+    .hero-text{ max-width:none; }
+    .hero-img{ max-width:320px; margin:0 auto; }
     .hero-footer-row{ margin-top:32px; }
     .steps-grid{ grid-template-columns:1fr; gap:32px; }
     .step:nth-child(2), .step:nth-child(3){ padding-left:0; }
@@ -237,18 +237,15 @@
 
   <!-- Hero -->
   <section data-reveal="hero">
-    <div class="hero-media">
-      <img class="hero-img" src="images/hero-binoculars.png" alt="Black-and-white collage of two hands holding binoculars in front of a mustard-yellow circle, cut out on a transparent background">
-      <h1 class="hero-h1">
-        <span class="word-mask"><span class="word">Don't&nbsp;</span></span><span class="word-mask"><span class="word">trust&nbsp;</span></span><span class="word-mask"><span class="word">the&nbsp;</span></span><span class="word-mask"><span class="word">screenshot.&nbsp;</span></span><span class="word-mask"><span class="word">Replay&nbsp;</span></span><span class="word-mask"><span class="word">the&nbsp;trade.</span></span>
-      </h1>
-    </div>
-    <div class="hero-footer-row">
-      <p class="hero-footer-left">Every decision your agent makes gets sealed into a signed, hash-chained receipt. Clone the repo, run one command, and get back the identical decision. Tamper with the record, and both verify and replay catch it independently.</p>
-      <div class="hero-footer-right">
-        <div class="label-foot">8 commands · under 2 seconds · no API key</div>
+    <div class="hero-flex">
+      <div class="hero-text">
+        <h1 class="hero-h1">
+          <span class="word-mask"><span class="word">Don't&nbsp;</span></span><span class="word-mask"><span class="word">trust&nbsp;</span></span><span class="word-mask"><span class="word">the&nbsp;</span></span><span class="word-mask"><span class="word">screenshot.&nbsp;</span></span><span class="word-mask"><span class="word">Replay&nbsp;</span></span><span class="word-mask"><span class="word">the&nbsp;trade.</span></span>
+        </h1>
+        <p class="hero-footer-left">Every decision your agent makes gets sealed into a signed, hash-chained receipt. Clone the repo, run one command, and get back the identical decision. Tamper with the record, and both verify and replay catch it independently.</p>
         <a href="#demo" class="cta">Run the demo →</a>
       </div>
+      <img class="hero-img" src="images/hero-binoculars.png" alt="Black-and-white collage of two hands holding binoculars in front of a mustard-yellow circle, cut out on a transparent background">
     </div>
   </section>
 

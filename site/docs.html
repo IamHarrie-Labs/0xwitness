@@ -35,8 +35,8 @@
   p{ margin:0; }
   :focus-visible{ outline:2px solid var(--ink); outline-offset:3px; }
 
-  .label{ font-style:italic; font-size:11px; letter-spacing:.04em; color:var(--muted2); }
-  .label-foot{ font-style:italic; font-size:10px; letter-spacing:.04em; line-height:1.8; color:var(--muted2); }
+  .label{ font-weight:600; font-size:11px; letter-spacing:.04em; color:var(--muted2); text-transform:uppercase; }
+  .label-foot{ font-size:10px; letter-spacing:.04em; line-height:1.8; color:var(--muted2); }
   .p{ font-size:16px; line-height:1.6; color:var(--muted3); max-width:60ch; margin:0 0 16px; }
 
   .rail{
@@ -68,14 +68,13 @@
   .field-list{ display:flex; flex-direction:column; }
   .field-row{ display:flex; gap:24px; flex-wrap:wrap; padding:18px 0; border-top:1px solid var(--rule); }
   .field-row:first-child{ border-top:none; }
-  .field-name{ font-style:italic; font-size:15px; color:var(--ink); width:260px; flex-shrink:0; }
-  .field-name.plain{ font-style:normal; font-weight:600; }
+  .field-name{ font-weight:600; font-size:15px; color:var(--ink); width:260px; flex-shrink:0; }
   .field-desc{ font-size:16px; line-height:1.6; color:var(--muted3); max-width:52ch; margin:0; }
 
   .code-block{ border:1px solid var(--rule); overflow:hidden; }
   .code-line{ font-size:13.5px; padding:10px 16px; }
   .code-line:nth-child(odd){ background:var(--card); }
-  .code-cmd{ color:var(--muted3); }
+  .code-cmd{ font-weight:600; color:var(--ink); }
   .code-comment{ color:var(--muted2); }
 
   .flow{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:24px 0; }
