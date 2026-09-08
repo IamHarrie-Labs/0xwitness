@@ -14,6 +14,7 @@ checks, and the outcome. Anyone can clone this repo and re-derive the decision f
 the receipt alone, no API key, no network, no trusting our screenshots.
 
 **Live site:** [0xwitness.vercel.app](https://0xwitness.vercel.app) · [docs](https://0xwitness.vercel.app/docs) · [verify a receipt in your browser](https://0xwitness.vercel.app/verify)
+**Hackathon submission:** [x.com/IamHarrie](https://x.com/IamHarrie/status/2097434003028815954?s=20)
 
 ```
 npx --yes . demo        # or: npm run keys && npm run fixture && npm run run -- --offline

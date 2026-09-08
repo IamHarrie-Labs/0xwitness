@@ -24,5 +24,5 @@ bit-deterministic.
 ## Entry mechanics
 
 - [ ] Followed [@Binance](https://x.com/binance) and reposted the announcement
-- [ ] Replied with the video/demo and this repo's link
+- [x] Replied with the video/demo and this repo's link: [x.com/IamHarrie](https://x.com/IamHarrie/status/2097434003028815954?s=20)
 - [ ] Completed the survey
