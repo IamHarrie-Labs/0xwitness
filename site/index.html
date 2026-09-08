@@ -58,7 +58,8 @@
     background:var(--bg); z-index:10; box-sizing:border-box;
   }
   .rail-mark{ font-weight:700; font-size:16px; letter-spacing:.03em; color:var(--ink); }
-  .rail-tagline{ margin-top:14px; line-height:1.7; }
+  .rail-top-row{ display:flex; align-items:center; justify-content:space-between; }
+  .rail-tagline{ font-style:normal; font-size:13px; color:var(--muted); margin-top:14px; line-height:1.7; }
   .rail-links{ margin-top:22px; }
   .rail-link{
     display:flex; justify-content:space-between; align-items:center;
@@ -67,7 +68,7 @@
   }
   .rail-link.muted{ color:var(--muted); }
   .rail-link:hover, .rail-link:focus-visible{ color:var(--accent-dark); }
-  .rail-mobile-row{ display:none; }
+  .rail-mobile-links{ display:none; }
 
   main{ position:relative; z-index:1; margin-left:var(--rail-w); }
 
@@ -83,7 +84,7 @@
   /* ---------- hero ---------- */
   .hero-media{ margin-top:56px; display:grid; grid-template-areas:"stack"; }
   .hero-img{
-    grid-area:stack; width:45%; max-width:560px;
+    grid-area:stack; width:56%; max-width:680px;
     display:block; justify-self:end; align-self:end;
   }
   h1.hero-h1{
@@ -110,7 +111,7 @@
   }
   .hero-footer-left{ max-width:38ch; color:var(--muted3); font-size:16px; line-height:1.6; }
   .hero-footer-right{ display:flex; flex-direction:column; align-items:flex-end; flex-shrink:0; }
-  .hero-footer-right .label-foot{ margin-top:10px; text-align:right; }
+  .hero-footer-right .label-foot{ margin-bottom:10px; text-align:right; }
 
   /* ---------- steps ---------- */
   .steps-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:40px; margin-top:8px; }
@@ -177,7 +178,7 @@
       padding:14px 20px; border-right:none; border-bottom:1px solid var(--rule);
     }
     .rail-tagline, .rail-links, .rail > .label-foot{ display:none; }
-    .rail-mobile-row{ display:flex; justify-content:space-between; align-items:center; gap:16px; }
+    .rail-top-row{ gap:16px; }
     .rail-mobile-links{ display:flex; gap:16px; }
     main{ margin-left:0; }
     .hero-media{ margin-top:40px; display:flex; flex-direction:column; gap:20px; }
@@ -205,15 +206,15 @@
 <div class="texture" aria-hidden="true"></div>
 
 <nav class="rail">
-  <div>
-    <div class="rail-mobile-row">
+  <div class="rail-top">
+    <div class="rail-top-row">
       <div class="rail-mark">0xWITNESS</div>
       <div class="rail-mobile-links">
         <a href="#demo" class="label-sm">Demo →</a>
         <a href="docs.html" class="label-sm">Docs</a>
       </div>
     </div>
-    <div class="label rail-tagline" style="color:var(--muted);">Signed receipts, for AI trading agents, on Binance Agent OS.</div>
+    <div class="rail-tagline">Signed receipts, for AI trading agents, on Binance Agent OS.</div>
     <div class="rail-links">
       <a href="#demo" class="rail-link"><span>Run the demo</span><span>→</span></a>
       <a href="docs.html" class="rail-link muted"><span>Read the docs</span><span>→</span></a>
@@ -236,8 +237,8 @@
     <div class="hero-footer-row">
       <p class="hero-footer-left">Every decision your agent makes gets sealed into a signed, hash-chained receipt. Clone the repo, run one command, and get back the identical decision. Tamper with the record, and both verify and replay catch it independently.</p>
       <div class="hero-footer-right">
-        <a href="#demo" class="cta">Run the demo →</a>
         <div class="label-foot">8 commands · under 2 seconds · no API key</div>
+        <a href="#demo" class="cta">Run the demo →</a>
       </div>
     </div>
   </section>
