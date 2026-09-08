@@ -141,12 +141,25 @@ src/agent/     policy engine, decision layer, run loop, replay+diff
 src/market/    seeded fixture generator
 src/cli/       run | replay | verify | tamper | keys | fixture
 site/          static marketing site (index.html + docs.html, no build step)
+test/          canon, policy, decision determinism, hash-chain tamper detection
 ```
 
 `site/index.html` is the landing page; `site/docs.html` covers the same ground as
 this README in a browsable form; `site/verify.html` re-derives a receipt's hash,
 signature and decision entirely in the browser via WebCrypto, no server involved.
 Serve the folder with anything static, `npx serve site` works with no setup.
+
+```bash
+npm test
+```
+
+34 tests, Node's built-in test runner, no new dependency. Covers canonical JSON
+ordering, every policy check at its exact boundary (not just pass/fail, the actual
+threshold), offline decision determinism, and the hash-chain claim directly: sealing
+a receipt, tampering with it, and asserting hashOk flips to false while sigOk stays
+true, exactly the property the CLI's own tamper demo shows on screen. One test
+reproduces the real live receipt's block (zero equity vetoing a $100 SOLUSDT sell)
+as a plain assertion, not just a screenshot of it happening once.
 
 Zero runtime dependencies. Node 22.6+ runs the TypeScript directly.
 
