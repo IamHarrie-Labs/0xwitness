@@ -1,6 +1,7 @@
 # 0xWitness
 
 [![test](https://github.com/IamHarrie-Labs/0xwitness/actions/workflows/test.yml/badge.svg)](https://github.com/IamHarrie-Labs/0xwitness/actions/workflows/test.yml)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **A flight recorder for AI trading agents on Binance Agent OS.**
 
