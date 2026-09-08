@@ -1,0 +1,5 @@
+# The marketing site is presentation, not the project's core engineering --
+# exclude it from GitHub's language detection so the bar reflects the actual
+# TypeScript agent (receipts, policy engine, MCP transport) rather than the
+# byte count of a hand-written landing page and an embedded example receipt.
+site/** linguist-documentation
