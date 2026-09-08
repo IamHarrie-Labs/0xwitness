@@ -53,14 +53,16 @@
   /* ---------- rail nav ---------- */
   .rail{
     position:fixed; top:0; left:0; width:var(--rail-w); height:100vh;
-    display:flex; flex-direction:column; justify-content:space-between;
+    display:flex; flex-direction:column;
     padding:32px 28px; border-right:1px solid var(--rule);
     background:var(--bg); z-index:10; box-sizing:border-box;
   }
   .rail-mark{ font-weight:700; font-size:16px; letter-spacing:.03em; color:var(--ink); }
   .rail-top-row{ display:flex; align-items:center; justify-content:space-between; }
   .rail-tagline{ font-style:normal; font-size:13px; color:var(--muted); margin-top:14px; line-height:1.7; }
-  .rail-links{ margin-top:22px; }
+  /* Sits in the flexible middle of the sidebar, between the header above and
+     the legal footer below, instead of clinging to the top under the tagline. */
+  .rail-links{ flex:1; display:flex; flex-direction:column; justify-content:center; }
   .rail-link{
     display:flex; justify-content:space-between; align-items:center;
     padding:12px 0; border-top:1px solid var(--rule);
@@ -87,7 +89,7 @@
      fit without scrolling -- stacking them (image above, then headline,
      then paragraph, then button) was what pushed the button below the fold. */
   .hero-flex{
-    display:flex; align-items:center; justify-content:space-between;
+    display:flex; align-items:flex-end; justify-content:space-between;
     flex-wrap:wrap; gap:clamp(28px,4vw,56px); margin-top:clamp(8px,2vw,20px);
   }
   .hero-text{ flex:1 1 320px; max-width:50%; }
@@ -136,7 +138,7 @@
   .step:nth-child(2) .step-divider{ transition-delay:100ms; }
   .step:nth-child(3) .step-divider{ transition-delay:200ms; }
   .is-revealed .step-divider{ transform:scaleY(1); }
-  .step-num{ font-size:44px; font-weight:700; color:var(--num); line-height:1; }
+  .step-num{ font-size:44px; font-weight:700; color:var(--accent-dark); line-height:1; }
   .step-title{ font-size:19px; font-weight:600; margin-top:18px; color:var(--ink); }
   .step-desc{ font-size:15px; line-height:1.6; color:var(--muted3); margin-top:10px; max-width:36ch; }
 
@@ -215,7 +217,7 @@
 <div class="texture" aria-hidden="true"></div>
 
 <nav class="rail">
-  <div class="rail-top">
+  <div class="rail-header">
     <div class="rail-top-row">
       <div class="rail-mark">0xWITNESS</div>
       <div class="rail-mobile-links">
@@ -224,11 +226,13 @@
       </div>
     </div>
     <div class="rail-tagline">Signed receipts, for AI trading agents, on Binance Agent OS.</div>
-    <div class="rail-links">
-      <a href="#demo" class="rail-link"><span>Run the demo</span><span>→</span></a>
-      <a href="docs.html" class="rail-link muted"><span>Read the docs</span><span>→</span></a>
-      <a href="https://github.com/IamHarrie-Labs/0xwitness" target="_blank" rel="noopener" class="rail-link muted"><span>GitHub</span><span>↗</span></a>
-    </div>
+  </div>
+  <!-- "Run the demo" lives only on the hero button here -- having it twice on
+       the same page was redundant. It comes back in the docs rail below,
+       where there's no hero button to duplicate. -->
+  <div class="rail-links">
+    <a href="docs.html" class="rail-link"><span>Read the docs</span><span>→</span></a>
+    <a href="https://github.com/IamHarrie-Labs/0xwitness" target="_blank" rel="noopener" class="rail-link muted"><span>GitHub</span><span>↗</span></a>
   </div>
   <div class="label-foot">Ed25519 · SHA-256<br>MIT license<br>© IamHarrie Labs 2026</div>
 </nav>
@@ -242,7 +246,7 @@
         <h1 class="hero-h1">
           <span class="word-mask"><span class="word">Don't&nbsp;</span></span><span class="word-mask"><span class="word">trust&nbsp;</span></span><span class="word-mask"><span class="word">the&nbsp;</span></span><span class="word-mask"><span class="word">screenshot.&nbsp;</span></span><span class="word-mask"><span class="word">Replay&nbsp;</span></span><span class="word-mask"><span class="word">the&nbsp;trade.</span></span>
         </h1>
-        <p class="hero-footer-left">Every decision your agent makes gets sealed into a signed, hash-chained receipt. Clone the repo, run one command, and get back the identical decision. Tamper with the record, and both verify and replay catch it independently.</p>
+        <p class="hero-footer-left">Every decision your trading agent makes gets locked into a signed record anyone can check. Try to quietly change that record afterward, and the system catches it instantly.</p>
         <a href="#demo" class="cta">Run the demo →</a>
       </div>
       <img class="hero-img" src="images/hero-binoculars.png" alt="Black-and-white collage of two hands holding binoculars in front of a mustard-yellow circle, cut out on a transparent background">
@@ -255,24 +259,24 @@
       <div class="step">
         <div class="step-num">01</div>
         <div>
-          <div class="step-title">Freeze the snapshot</div>
-          <div class="step-desc">Prices, klines, and account state captured once. No clock reads, no ambient state.</div>
+          <div class="step-title">Freeze the moment</div>
+          <div class="step-desc">Prices and account activity are captured once, the instant the agent looks at them, before it decides anything.</div>
         </div>
       </div>
       <div class="step">
         <div class="step-divider"></div>
         <div class="step-num">02</div>
         <div>
-          <div class="step-title">Decide under a charter</div>
-          <div class="step-desc">Six arithmetic policy checks: notional cap, leverage, concentration, symbol allowlist, open positions, losing streak. Not an LLM. It can't be talked out of a limit.</div>
+          <div class="step-title">Check it against the rules</div>
+          <div class="step-desc">Every trade is measured against plain, fixed safety limits, like how much to risk and when to stop. These are simple rules, not another AI, so they can't be talked out of themselves.</div>
         </div>
       </div>
       <div class="step">
         <div class="step-divider"></div>
         <div class="step-num">03</div>
         <div>
-          <div class="step-title">Seal the receipt</div>
-          <div class="step-desc">Canonical JSON, SHA-256, ed25519 signature, and a pointer to the last receipt. Append-only.</div>
+          <div class="step-title">Seal the record</div>
+          <div class="step-desc">The decision is signed and linked to the one before it, so nothing can be quietly edited later without it showing.</div>
         </div>
       </div>
     </div>
@@ -284,11 +288,11 @@
     <div class="numeral-inner" style="padding:var(--pad-y) var(--pad-x);">
       <div class="numeral-pair">
         <div class="numeral-zero">0</div>
-        <div class="numeral-deps">deps</div>
+        <div class="numeral-deps">setup</div>
       </div>
       <div class="numeral-right">
-        <div class="label">690 lines of TypeScript · 13 files · Node 22, no build step</div>
-        <p>No node_modules, no bundler, no external ledger. Clone it and it runs.</p>
+        <div class="label">Nothing to install first</div>
+        <p>No extra software, no accounts, no configuration. Download it and it works right away.</p>
       </div>
     </div>
   </section>
@@ -296,7 +300,7 @@
   <!-- Verify it yourself -->
   <section id="demo" data-reveal="tamper">
     <div class="label" style="color:var(--muted2); margin-bottom:12px;">Verify it yourself</div>
-    <p class="verify-p">Run the eight commands below. Replay prints identical. Then tamper with one sealed receipt and watch verify and replay both catch it, without trusting us.</p>
+    <p class="verify-p">See it for yourself: run the commands below, then try quietly changing one sealed record. Watch the system catch it immediately, without taking our word for it.</p>
     <div class="tamper-grid">
       <div class="tamper-card"><div class="tamper-cmd">$ 0xw keys</div><div class="tamper-result r-muted">ed25519 keypair → data/agent.key</div></div>
       <div class="tamper-card"><div class="tamper-cmd">$ 0xw fixture</div><div class="tamper-result r-muted">seeded market snapshot, 3 symbols</div></div>

@@ -36,18 +36,21 @@
   :focus-visible{ outline:2px solid var(--ink); outline-offset:3px; }
 
   .label{ font-weight:600; font-size:11px; letter-spacing:.04em; color:var(--muted2); text-transform:uppercase; }
+  .label-sm{ font-weight:600; font-size:11px; letter-spacing:.04em; color:var(--muted); text-transform:uppercase; }
   .label-foot{ font-size:10px; letter-spacing:.04em; line-height:1.8; color:var(--muted2); }
   .p{ font-size:16px; line-height:1.6; color:var(--muted3); max-width:60ch; margin:0 0 16px; }
 
   .rail{
     position:fixed; top:0; left:0; width:var(--rail-w); height:100vh;
-    display:flex; flex-direction:column; justify-content:space-between;
+    display:flex; flex-direction:column;
     padding:32px 28px; border-right:1px solid var(--rule);
     background:var(--bg); z-index:10; box-sizing:border-box;
   }
   .rail-mark{ font-weight:700; font-size:16px; letter-spacing:.03em; color:var(--ink); }
   .rail-tagline{ margin-top:14px; line-height:1.7; color:var(--muted); }
-  .rail-links{ margin-top:22px; }
+  .rail-links{ flex:1; display:flex; flex-direction:column; justify-content:center; }
+  .rail-top-row{ display:flex; align-items:center; justify-content:space-between; }
+  .rail-mobile-links{ display:none; }
   .rail-link{
     display:flex; justify-content:space-between; align-items:center;
     padding:12px 0; border-top:1px solid var(--rule);
@@ -89,10 +92,10 @@
   .cta{ font-size:13px; font-weight:600; color:var(--ink); background:var(--accent); padding:13px 22px; display:inline-block; }
 
   @media (max-width:899px){
-    .rail{ position:sticky; top:0; left:0; width:100%; height:auto; padding:16px 20px; border-right:none; border-bottom:1px solid var(--rule); flex-direction:row; align-items:center; justify-content:space-between; }
-    .rail-tagline, .rail > .label-foot{ display:none; }
-    .rail-links{ margin-top:0; display:flex; gap:16px; }
-    .rail-link{ border-top:none; padding:0; }
+    .rail{ position:sticky; top:0; left:0; width:100%; height:auto; padding:14px 20px; border-right:none; border-bottom:1px solid var(--rule); flex-direction:column; }
+    .rail-tagline, .rail-links, .rail > .label-foot{ display:none; }
+    .rail-top-row{ gap:16px; }
+    .rail-mobile-links{ display:flex; gap:16px; }
     main{ margin-left:0; }
     .field-name{ width:auto; }
   }
@@ -101,13 +104,20 @@
 <body>
 
 <nav class="rail">
-  <div>
-    <a href="index.html" class="rail-mark">0xWITNESS</a>
-    <div class="label rail-tagline">Documentation</div>
-    <div class="rail-links">
-      <a href="index.html" class="rail-link"><span>← Back to site</span></a>
-      <a href="https://github.com/IamHarrie-Labs/0xwitness" target="_blank" rel="noopener" class="rail-link muted"><span>GitHub</span><span>↗</span></a>
+  <div class="rail-header">
+    <div class="rail-top-row">
+      <a href="index.html" class="rail-mark">0xWITNESS</a>
+      <div class="rail-mobile-links">
+        <a href="index.html#demo" class="label-sm">Demo →</a>
+        <a href="index.html" class="label-sm">Site</a>
+      </div>
     </div>
+    <div class="label rail-tagline">Documentation</div>
+  </div>
+  <div class="rail-links">
+    <a href="index.html#demo" class="rail-link"><span>Run the demo</span><span>→</span></a>
+    <a href="index.html" class="rail-link muted"><span>← Back to site</span></a>
+    <a href="https://github.com/IamHarrie-Labs/0xwitness" target="_blank" rel="noopener" class="rail-link muted"><span>GitHub</span><span>↗</span></a>
   </div>
   <div class="label-foot">Ed25519 · SHA-256<br>MIT license<br>© IamHarrie Labs 2026</div>
 </nav>
