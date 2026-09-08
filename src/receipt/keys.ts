@@ -1,10 +1,16 @@
 import { generateKeyPairSync, sign, verify, createPrivateKey, createPublicKey } from "node:crypto";
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 
 const PRIV = "data/agent.key";
 const PUB = "agent.pub";   // committed to the repo so anyone can verify
 
 export function generateKeys(): void {
+  // data/ is entirely gitignored (not just its contents), so a fresh clone
+  // has no data/ directory at all until something creates it. Caught by CI
+  // on a genuinely clean checkout; invisible on any machine that already
+  // had the directory from an earlier run.
+  mkdirSync(dirname(PRIV), { recursive: true });
   const { privateKey, publicKey } = generateKeyPairSync("ed25519");
   writeFileSync(PRIV, privateKey.export({ type: "pkcs8", format: "pem" }));
   writeFileSync(PUB, publicKey.export({ type: "spki", format: "pem" }));
