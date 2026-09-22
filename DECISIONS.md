@@ -36,7 +36,7 @@ hash means an edit, deletion, or reorder is detectable. It does not mean the log
 cannot be forged by someone holding the private key, who could rewrite history
 wholesale and re-sign it. That's a real, stated limit, not a rounding error:
 tamper-*proof* would be a false claim about what a hash chain plus a single
-signing key can guarantee. See `LIMITATIONS.md`.
+signing key can guarantee. See [`LIMITATIONS.md`](LIMITATIONS.md).
 
 ## D-04: One `Transport` interface, three implementations
 
@@ -53,7 +53,7 @@ Binance's spot `getAccount` endpoint returns a list of per-asset balances, not a
 single portfolio-value figure. Since the charter only trades USDT-quoted pairs
 (BTCUSDT, ETHUSDT, SOLUSDT), `live.ts` sums the USDT `free` + `locked` balance and
 calls that equity. It's a stated simplification, not a full mark-to-market of the
-account, documented in `LIMITATIONS.md` rather than silently presented as exact.
+account, documented in [`LIMITATIONS.md`](LIMITATIONS.md) rather than silently presented as exact.
 
 ## D-06: `fundingRate` is honestly `null` on live snapshots
 
@@ -79,7 +79,7 @@ There's no trade-history-derived realized-P&L series wired up for live accounts.
 Rather than fake a plausible-looking series, `recentPnl` is an empty array, and the
 losing-streak policy check reads zero entries as zero consecutive losses, meaning
 it never falsely blocks a trade, but it also isn't measuring real trading
-behavior yet. Stated in `LIMITATIONS.md`.
+behavior yet. Stated in [`LIMITATIONS.md`](LIMITATIONS.md).
 
 ## D-09: The live tool names didn't match the server's own documentation
 
