@@ -14,7 +14,7 @@ A flight recorder for AI trading agents on Binance Agent OS. Every decision emit
 a signed, hash-chained receipt, and anyone can re-derive it from the receipt
 alone, no API key, no network, no trusting our screenshots.
 
-**[Verify a receipt in your browser](https://0xwitness.vercel.app/verify)** · [Live site](https://0xwitness.vercel.app) · [Docs](https://0xwitness.vercel.app/docs) · [Architecture](ARCHITECTURE.md) · [Decisions](DECISIONS.md) · [Limitations](LIMITATIONS.md) · [The build story](ARTICLE.md)
+**[Verify a receipt in your browser](https://0xwitness.vercel.app/verify)** · [Live site](https://0xwitness.vercel.app) · [Docs](https://0xwitness.vercel.app/docs) · [Architecture](ARCHITECTURE.md) · [Decisions](DECISIONS.md) · [Limitations](LIMITATIONS.md) · [The build story](ARTICLE.md) · [Submission checklist](SUBMISSION_CHECKLIST.md)
 
 </div>
 
@@ -247,6 +247,7 @@ ARCHITECTURE.md  component map, the receipt's full path, Mermaid diagram
 DECISIONS.md     15 numbered engineering decisions, reasoning and the bugs behind them
 LIMITATIONS.md   full list of what this does not claim
 ARTICLE.md       first-person account of the build
+SUBMISSION_CHECKLIST.md  every claim mapped to the exact command that verifies it
 ```
 
 `site/index.html` is the landing page; `site/docs.html` covers the same ground as

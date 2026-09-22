@@ -4,6 +4,10 @@
   "description": "0xWitness: flight recorder for AI trading agents on Binance Agent OS. Every decision is reproducible.",
   "type": "module",
   "license": "MIT",
+  "author": "IamHarrie Labs",
+  "homepage": "https://0xwitness.vercel.app",
+  "repository": { "type": "git", "url": "https://github.com/IamHarrie-Labs/0xwitness.git" },
+  "bugs": "https://github.com/IamHarrie-Labs/0xwitness/issues",
   "engines": { "node": ">=22.6" },
   "scripts": {
     "keys":    "node --experimental-strip-types src/cli/index.ts keys",
