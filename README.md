@@ -1,24 +1,40 @@
+<div align="center">
+
 # 0xWitness
+
+### Don't trust the screenshot. Replay the trade.
 
 [![test](https://github.com/IamHarrie-Labs/0xwitness/actions/workflows/test.yml/badge.svg)](https://github.com/IamHarrie-Labs/0xwitness/actions/workflows/test.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![dependencies](https://img.shields.io/badge/runtime_dependencies-0-555555)](package.json)
+[![policy checks](https://img.shields.io/badge/policy_checks-6-8b6a27)](DECISIONS.md#d-01-the-policy-engine-is-arithmetic-not-an-llm)
+[![live Agent OS](https://img.shields.io/badge/live_Agent_OS-verified_2026--09--08-8b6a27)](#running-against-live-agent-os)
 
-**A flight recorder for AI trading agents on Binance Agent OS.**
+A flight recorder for AI trading agents on Binance Agent OS. Every decision emits
+a signed, hash-chained receipt, and anyone can re-derive it from the receipt
+alone, no API key, no network, no trusting our screenshots.
 
-Every other agent asks you to trust it. This one hands you the evidence, signed,
-so it can testify for itself.
+**[Verify a receipt in your browser](https://0xwitness.vercel.app/verify)** · [Live site](https://0xwitness.vercel.app) · [Docs](https://0xwitness.vercel.app/docs) · [Architecture](ARCHITECTURE.md) · [Decisions](DECISIONS.md) · [Limitations](LIMITATIONS.md) · [The build story](ARTICLE.md)
 
-Each decision emits a signed, hash-chained **receipt** containing the exact market
-snapshot the agent saw, the exact prompt it was given, the model output, the policy
-checks, and the outcome. Anyone can clone this repo and re-derive the decision from
-the receipt alone, no API key, no network, no trusting our screenshots.
+</div>
 
-**Live site:** [0xwitness.vercel.app](https://0xwitness.vercel.app) · [docs](https://0xwitness.vercel.app/docs) · [verify a receipt in your browser](https://0xwitness.vercel.app/verify)
-**Hackathon submission:** [x.com/IamHarrie](https://x.com/IamHarrie/status/2097434003028815954?s=20)
+---
 
-```
-npx --yes . demo        # or: npm run keys && npm run fixture && npm run run -- --offline
-```
+## Contents
+
+- [Why this exists](#why-this-exists)
+- [What broke, and what that proved](#what-broke-and-what-that-proved)
+- [Who this is for](#who-this-is-for)
+- [Explore without running anything](#explore-without-running-anything)
+- [Verify it yourself](#verify-it-yourself)
+- [What a receipt contains](#what-a-receipt-contains)
+- [Architecture, in brief](#architecture-in-brief)
+- [The decisions that mattered most](#the-decisions-that-mattered-most)
+- [What this does not claim](#what-this-does-not-claim)
+- [Running against live Agent OS](#running-against-live-agent-os)
+- [Install as a skill](#install-as-a-skill)
+- [Layout](#layout)
+- [Notes for the Agent OS team](#notes-for-the-agent-os-team)
 
 ## Why this exists
 
@@ -32,54 +48,73 @@ and a vibe. The market moved, the model is nondeterministic by nature, the promp
 might have changed since. There is no way to reconstruct what it saw or why it
 decided what it decided. Every hackathon entry in this space was going to compete
 on the authority axis, since that's what Agent OS already gives you for free.
-0xWitness is an attempt to answer the other one: not "was the agent allowed to
-trade," but "can a stranger check, without trusting me, exactly what it saw and
-why it acted."
+0xWitness answers the other one: not "was the agent allowed to trade," but "can a
+stranger check, without trusting me, exactly what it saw and why it acted."
 
 That's the whole pitch. Not "trust our agent," but "here's a signed record, go
 check it yourself."
 
-### What broke, and what that proved
+## What broke, and what that proved
 
 The policy engine that blocks or allows a trade is deliberately arithmetic, not
-another LLM, six plain checks (notional cap, leverage cap, symbol allowlist,
+another LLM: six plain checks (notional cap, leverage cap, symbol allowlist,
 position concentration, open positions, losing streak). An LLM can be talked out
 of a rule by a good enough prompt. Arithmetic can't be, and it replays identically
-forever, which is the whole point of a receipt.
+forever, which is the whole point of a receipt. Full reasoning: [D-01](DECISIONS.md#d-01-the-policy-engine-is-arithmetic-not-an-llm).
 
-The pipeline was also built offline-first on purpose, a deterministic momentum
-strategy and a seeded fixture generator, before the live API was ever touched.
-That let the entire chain of custody get proven with zero network calls and zero
-API key, verifiable by anyone in under two seconds. When the live Binance Agent OS
-integration was finally wired up against a real OAuth session, it turned out to be
-wrong in three separate ways that reading the documentation alone never surfaces:
-the server's own setup instructions describe one tool-naming convention
-(`create_spot_newOrder`) while the real API uses another (`spot.newOrder`); its
-tool list is paginated, with spot and wallet tools sitting on a second page an
-integration that lists once will never see; and a piece of TypeScript syntax in
-the live client would have crashed on import regardless, before a single network
-call, for reasons that had nothing to do with Binance at all. All three were found
-by actually running it against the real server instead of trusting that careful
-reading was equivalent to testing. It wasn't.
+The pipeline was also built offline-first, a deterministic momentum strategy and a
+seeded fixture generator, before the live API was ever touched ([D-02](DECISIONS.md#d-02-offline-first-before-the-live-api-was-ever-touched)).
+When the live Binance Agent OS integration was finally wired up against a real
+OAuth session, it turned out to be wrong in three separate ways that reading the
+documentation alone never surfaces: the server's own setup instructions describe
+one tool-naming convention (`create_spot_newOrder`) while the real API uses
+another (`spot.newOrder`, [D-09](DECISIONS.md#d-09-the-live-tool-names-didnt-match-the-servers-own-documentation));
+its tool list is paginated, with spot and wallet tools sitting on a second page an
+integration that lists once will never see ([D-10](DECISIONS.md#d-10-toolslist-is-paginated-and-page-one-has-no-spot-or-wallet-tools));
+and a piece of TypeScript syntax in the live client would have crashed on import
+regardless, before a single network call, for reasons that had nothing to do with
+Binance at all ([D-11](DECISIONS.md#d-11-a-typescript-syntax-choice-crashed-the-live-client-on-import)).
+All three were found by actually running it against the real server instead of
+trusting that careful reading was equivalent to testing. It wasn't.
 
-Once fixed, the first real run produced something better than anything staged: the
-agent captured real BTCUSDT/ETHUSDT/SOLUSDT prices, proposed selling $100 of
+Once fixed, the first real run produced something better than anything staged:
+the agent captured real BTCUSDT/ETHUSDT/SOLUSDT prices, proposed selling $100 of
 SOLUSDT on real momentum, and the policy engine blocked it, correctly, because the
 sub-account had zero equity and the charter refused to let an undefined risk
 calculation pass as a yes. A system that only ever demos the happy path hasn't
 proven its safety claims. One that shows its own brakes working, on the real
 exchange, has.
 
-The same pattern showed up again later with a 34-test automated suite added
-late in the build: every test passed locally on the first try, and the first CI
-run against a genuinely clean checkout still failed, because the folder holding
-the signing key is gitignored entirely and nothing had ever created it on a fresh
-clone. Invisible on the machine that already had the folder from earlier runs,
-immediately visible to CI. Fixed and verified by literally moving the local data
-directory aside and re-running the suite clean.
+The same pattern showed up again with a 34-test automated suite added late in the
+build: every test passed locally on the first try, and the first CI run against a
+genuinely clean checkout still failed, because the folder holding the signing key
+is gitignored entirely and nothing had ever created it on a fresh clone. Invisible
+on the machine that already had the folder from earlier runs, immediate on CI.
+Fixed and verified by moving the local data directory aside and re-running the
+suite clean ([D-12](DECISIONS.md#d-12-the-test-suite-caught-a-bug-its-author-never-would-have-by-running-on-a-clean-machine)).
 
 Full account of the build, including why 0xWitness deliberately stayed an MCP
-*client* rather than also becoming a server: **[ARTICLE.md](ARTICLE.md)**.
+*client* rather than also becoming a server ([D-13](DECISIONS.md#d-13-0xwitness-stayed-an-mcp-client-not-also-a-server)):
+**[ARTICLE.md](ARTICLE.md)**.
+
+## Who this is for
+
+Anyone letting an AI agent act on a real account who wants a way to check its
+work afterward without taking its word for it: someone evaluating whether to give
+an agent more size, a builder auditing why a specific trade fired, or a reviewer
+who wants to break a tamper claim themselves rather than read about it. It's not
+a trading signal and it's not a portfolio dashboard, the bundled strategy exists
+to give the receipt something real to record, not to recommend a position.
+
+## Explore without running anything
+
+| Open | Look for | What it establishes |
+|---|---|---|
+| [Live verifier](https://0xwitness.vercel.app/verify) | It loads already `VALID` / `VALID` | The default receipt is real, captured live against Binance Agent OS, not a fixture |
+| Same page | Click **Tamper with it** | Content hash flips to `INVALID`, the signature stays validly formed, and the re-derived decision diverges, live, in your browser |
+| [Live site](https://0xwitness.vercel.app) | Scroll to "Verify it yourself" | The exact terminal sequence below, shown as a static reference alongside the interactive one |
+| [`DECISIONS.md`](DECISIONS.md) | D-09 through D-12 | The real bugs found by actually running this against a live server and a clean CI checkout, not just reading documentation |
+| [GitHub Actions](https://github.com/IamHarrie-Labs/0xwitness/actions/workflows/test.yml) | Latest run | 34 tests, continuously verified on every push, not passed once and screenshotted |
 
 ## Verify it yourself
 
@@ -99,7 +134,8 @@ npm run verify                     # hash=bad, the record no longer matches its 
 npm run replay -- --seq 0 --offline # ALTERED, and the decision visibly changes
 ```
 
-That is the whole claim, and you just checked it without trusting us.
+That is the whole claim, and you just checked it without trusting us. No install,
+same check, in a browser: [0xwitness.vercel.app/verify](https://0xwitness.vercel.app/verify).
 
 ## What a receipt contains
 
@@ -113,7 +149,7 @@ That is the whole claim, and you just checked it without trusting us.
 | `outcome` | Submitted or blocked, and why. **Blocked proposals are recorded too**: a log of only the trades you took is a highlight reel, not an audit trail. |
 | `prev` + `hash` + `sig` | Hash chain plus ed25519 signature: nothing can be edited, deleted, reordered or forged. |
 
-## Architecture
+## Architecture, in brief
 
 ```
   Agent OS MCP ─┐
@@ -130,41 +166,41 @@ That is the whole claim, and you just checked it without trusting us.
 ```
 
 The agent reaches the world only through `Transport`. Live and replay differ by
-one swap, so reproduction is exact, not approximate.
+one swap, so reproduction is exact, not approximate. Component-by-component
+breakdown, plus a Mermaid version of the diagram: **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
-The policy engine is deliberately *not* an LLM. Charter limits (notional, leverage,
-symbol scope, position concentration, losing-streak) are arithmetic, so they replay
-identically forever and cannot be argued out of by a persuasive prompt.
+## The decisions that mattered most
+
+Full write-ups, numbered, in [`DECISIONS.md`](DECISIONS.md). The ones that
+changed how the project behaves, not just how it's phrased:
+
+| Decision | Why it mattered |
+|---|---|
+| [D-01](DECISIONS.md#d-01-the-policy-engine-is-arithmetic-not-an-llm) Policy engine is arithmetic, not an LLM | A rule an LLM enforces can be argued out of by a good prompt. Arithmetic can't, and it replays identically forever. |
+| [D-03](DECISIONS.md#d-03-tamper-evident-not-tamper-proof-and-the-readme-says-so) Tamper-*evident*, not tamper-*proof* | A key holder could still rewrite history wholesale. Saying so is the difference between engineering and marketing. |
+| [D-05](DECISIONS.md#d-05-equityusd-is-approximated-from-the-usdt-balance-on-purpose)–[D-08](DECISIONS.md#d-08-recentpnl-is-empty-live-and-the-losing-streak-check-reads-that-as-permissive) Live account fields are honestly incomplete | `equityUsd`, `entryPrice`, and `recentPnl` all carry stated simplifications instead of confident-looking guesses. |
+| [D-09](DECISIONS.md#d-09-the-live-tool-names-didnt-match-the-servers-own-documentation)–[D-11](DECISIONS.md#d-11-a-typescript-syntax-choice-crashed-the-live-client-on-import) Three real bugs found only by running live | Documentation review isn't testing. All three were invisible until an authenticated session actually hit the real server. |
+| [D-12](DECISIONS.md#d-12-the-test-suite-caught-a-bug-its-author-never-would-have-by-running-on-a-clean-machine) CI caught a fresh-clone bug on its first run | `data/` doesn't exist until something creates it. Invisible on any machine that already had it; immediate on a clean checkout. |
+| [D-13](DECISIONS.md#d-13-0xwitness-stayed-an-mcp-client-not-also-a-server) Stayed an MCP client, not also a server | A second server duplicates Binance's own surface rather than adding to it. Scope discipline over a longer feature list. |
 
 ## What this does not claim
 
-**Bit-determinism from hosted LLMs.** They batch nondeterministically, so temperature 0 isn't
-a guarantee. What's actually guaranteed: the *inputs* are reconstructed exactly, and any output
-divergence gets surfaced instead of hidden. With the built-in offline model, replay is exact.
-With a hosted model, a non-empty diff is a real measurement of how stable the agent's judgment
-is, which is worth knowing on its own.
+Full detail, including two more limitations not summarized here, in
+[`LIMITATIONS.md`](LIMITATIONS.md).
 
-**That the agent predicts markets.** The bundled strategy is a plain momentum rule, nothing
-more. The contribution here is the evidence layer, not the alpha.
-
-**A tamper-proof log.** It's tamper-evident. Someone holding the private key could still
-rewrite history wholesale. Anchoring the chain head periodically would close that gap, and
-the hash chain is already shaped for it.
-
-**Custody of any kind.** Agent OS gives agents no withdrawal scope. Neither does this.
-
-**Financial advice, or a way around Agent OS's own confirmation step.** The bundled strategy
-exists to give the receipt something real to record, not to signal what you should trade.
-`--submit` still surfaces the order for approval in your own Agent OS client; this code can't
-execute anything by itself. And it's market orders only for now, no limit, stop-loss or
-take-profit types wired up yet.
-
-**A full live account picture.** `equityUsd` on live snapshots is the USDT balance, not a
-true portfolio value across every asset. `recentPnl` is always empty live: there's no
-trade-history-derived P&L series wired up yet, so the losing-streak check reads it as zero
-consecutive losses (permissive, never a false block, but not a real behavioral read either).
-`entryPrice` on live positions is `null` for the same reason: Binance's account endpoint
-reports balances, not cost basis.
+- **Bit-determinism from hosted LLMs.** Inputs are reconstructed exactly on
+  replay; output divergence is surfaced, not hidden.
+- **That the agent predicts markets.** The bundled strategy is a plain momentum
+  rule. The contribution is the evidence layer, not the alpha.
+- **A tamper-proof log.** Tamper-*evident*. A private-key holder could still
+  rewrite history wholesale.
+- **Custody of any kind.** Agent OS gives agents no withdrawal scope. Neither
+  does this.
+- **Financial advice, or a bypass of Agent OS's own confirmation step.**
+  `--submit` still surfaces the order for approval in your own client. Market
+  orders only, no limit, stop-loss, or take-profit types wired up.
+- **A full live account picture.** `equityUsd`, `entryPrice`, and `recentPnl` on
+  live snapshots all carry stated simplifications (D-05, D-07, D-08).
 
 ## Running against live Agent OS
 
@@ -174,17 +210,16 @@ npm run run -- --live               # propose only
 npm run run -- --live --submit      # submit for confirmation in your client
 ```
 
-Trades execute in your Agentic sub-account, which you fund manually and can revoke at
-any time. `src/mcp/live.ts` is the only file that talks to Binance; everything else is
-transport-agnostic.
+Trades execute in your Agentic sub-account, which you fund manually and can revoke
+at any time. `src/mcp/live.ts` is the only file that talks to Binance; everything
+else is transport-agnostic.
 
-**Verified 2026-09-08** against the real server (`Binance-MCP-Server` v1.1.0) with a live
-OAuth session: real klines and prices for BTCUSDT/ETHUSDT/SOLUSDT, a real decision, and a
-real policy block (the sub-account was unfunded, so `position-pct` correctly read `n/a`
-against zero equity and refused the trade rather than passing it). Spot has no funding
-rate: `fundingRate` is honestly `null` on live snapshots, not estimated. `equityUsd` is
-approximated from the USDT balance, since spot accounts report balances, not a single
-equity figure.
+**Verified 2026-09-08** against the real server (`Binance-MCP-Server` v1.1.0) with a
+live OAuth session: real klines and prices for BTCUSDT/ETHUSDT/SOLUSDT, a real
+decision, and a real policy block (the sub-account was unfunded, so
+`position-pct` correctly read `n/a` against zero equity and refused the trade
+rather than passing it). That exact receipt is loaded by default in the
+[browser verifier](https://0xwitness.vercel.app/verify).
 
 ## Install as a skill
 
@@ -192,9 +227,10 @@ equity figure.
 npx skills add https://github.com/IamHarrie-Labs/0xwitness
 ```
 
-The manifest lives at [`skills/0xwitness/SKILL.md`](skills/0xwitness/SKILL.md) (mirrored to
-`.agents/skills/0xwitness/`), documents every command, and links back to this README's
-honesty sections rather than repeating them.
+The manifest lives at [`skills/0xwitness/SKILL.md`](skills/0xwitness/SKILL.md),
+mirrored to `.agents/skills/0xwitness/` and `.claude/skills/0xwitness/` (all three
+are locations the `skills` CLI actually discovers). It documents every command and
+links back to this README's honesty sections rather than repeating them.
 
 ## Layout
 
@@ -204,9 +240,13 @@ src/mcp/       transport interface, live Agent OS client, fixture replay
 src/agent/     policy engine, decision layer, run loop, replay+diff
 src/market/    seeded fixture generator
 src/cli/       run | replay | verify | tamper | keys | fixture
-site/          static marketing site (index.html + docs.html, no build step)
+site/          static marketing site (index.html, docs.html, verify.html)
 test/          canon, policy, decision determinism, hash-chain tamper detection
-skills/        SKILL.md manifest for `npx skills add`, mirrored to .agents/skills/
+skills/        SKILL.md manifest for `npx skills add`, mirrored to .agents/ and .claude/
+ARCHITECTURE.md  component map, the receipt's full path, Mermaid diagram
+DECISIONS.md     15 numbered engineering decisions, reasoning and the bugs behind them
+LIMITATIONS.md   full list of what this does not claim
+ARTICLE.md       first-person account of the build
 ```
 
 `site/index.html` is the landing page; `site/docs.html` covers the same ground as
@@ -220,17 +260,18 @@ npm test
 
 34 tests, Node's built-in test runner, no new dependency. Covers canonical JSON
 ordering, every policy check at its exact boundary (not just pass/fail, the actual
-threshold), offline decision determinism, and the hash-chain claim directly: sealing
-a receipt, tampering with it, and asserting hashOk flips to false while sigOk stays
-true, exactly the property the CLI's own tamper demo shows on screen. One test
-reproduces the real live receipt's block (zero equity vetoing a $100 SOLUSDT sell)
-as a plain assertion, not just a screenshot of it happening once.
+threshold), offline decision determinism, and the hash-chain claim directly:
+sealing a receipt, tampering with it, and asserting `hashOk` flips to false while
+`sigOk` stays true, exactly the property the CLI's own tamper demo shows on
+screen. One test reproduces the real live receipt's block (zero equity vetoing a
+$100 SOLUSDT sell) as a plain assertion, not just a screenshot of it happening
+once. Runs on every push via [GitHub Actions](https://github.com/IamHarrie-Labs/0xwitness/actions/workflows/test.yml).
 
 Zero runtime dependencies. Node 22.6+ runs the TypeScript directly.
 
 ## Notes for the Agent OS team
 
-Found while wiring up `src/mcp/live.ts` against the real server, in case it's useful:
+Found while wiring up `src/mcp/live.ts` against the real server ([D-09](DECISIONS.md#d-09-the-live-tool-names-didnt-match-the-servers-own-documentation)–[D-11](DECISIONS.md#d-11-a-typescript-syntax-choice-crashed-the-live-client-on-import) have the full write-up), in case it's useful:
 
 - The `initialize` response's own instructions describe tool names as a
   `{verb}_{product}_{operation}` pattern (e.g. `create_spot_newOrder`,
@@ -252,4 +293,12 @@ Found while wiring up `src/mcp/live.ts` against the real server, in case it's us
   only the text form, with no `structuredContent` at all. A client has to handle
   both.
 
+---
+
+<div align="center">
+
+**Live site:** [0xwitness.vercel.app](https://0xwitness.vercel.app) · **Hackathon submission:** [x.com/IamHarrie](https://x.com/IamHarrie/status/2097434003028815954?s=20)
+
 MIT.
+
+</div>
