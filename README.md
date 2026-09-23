@@ -14,7 +14,7 @@ A flight recorder for AI trading agents on Binance Agent OS. Every decision emit
 a signed, hash-chained receipt, and anyone can re-derive it from the receipt
 alone, no API key, no network, no trusting our screenshots.
 
-**[Verify a receipt in your browser](https://0xwitness.vercel.app/verify)** · [Live site](https://0xwitness.vercel.app) · [Docs](https://0xwitness.vercel.app/docs) · [Architecture](ARCHITECTURE.md) · [Decisions](DECISIONS.md) · [Limitations](LIMITATIONS.md) · [The build story](ARTICLE.md) · [Submission checklist](SUBMISSION_CHECKLIST.md)
+**[Verify a receipt in your browser](https://0xwitness.vercel.app/verify)** · [Live site](https://0xwitness.vercel.app) · [Docs](https://0xwitness.vercel.app/docs) · [Architecture](ARCHITECTURE.md) · [Decisions](DECISIONS.md) · [Limitations](LIMITATIONS.md) · [The build story](ARTICLE.md) · [Submission checklist](SUBMISSION_CHECKLIST.md) · [Submission post](https://x.com/IamHarrie/status/2097434003028815954?s=20)
 
 </div>
 
