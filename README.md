@@ -307,8 +307,6 @@ Found while wiring up `src/mcp/live.ts` against the real server ([D-09](DECISION
 
 <div align="center">
 
-**Live site:** [0xwitness.vercel.app](https://0xwitness.vercel.app) · **Hackathon submission:** [x.com/IamHarrie](https://x.com/IamHarrie/status/2097434003028815954?s=20)
-
 MIT.
 
 </div>
