@@ -16,6 +16,8 @@ alone, no API key, no network, no trusting our screenshots.
 
 **[Verify a receipt in your browser](https://0xwitness.vercel.app/verify)** · [Live site](https://0xwitness.vercel.app) · [Docs](https://0xwitness.vercel.app/docs) · [Architecture](ARCHITECTURE.md) · [Decisions](DECISIONS.md) · [Limitations](LIMITATIONS.md) · [The build story](ARTICLE.md) · [Submission checklist](SUBMISSION_CHECKLIST.md) · [Submission post](https://x.com/IamHarrie/status/2097434003028815954?s=20)
 
+<img src="assets/screenshots/home.png" alt="0xWitness landing page: the headline &quot;Don't trust the screenshot. Replay the trade,&quot; with the three-step Freeze / Check / Seal process below it" width="820">
+
 </div>
 
 ---
@@ -117,6 +119,13 @@ to give the receipt something real to record, not to recommend a position.
 | [GitHub Actions](https://github.com/IamHarrie-Labs/0xwitness/actions/workflows/test.yml) | Latest run | 34 tests, continuously verified on every push, not passed once and screenshotted |
 
 ## Verify it yourself
+
+The same check, already run, in the browser verifier: a real receipt loading as
+`VALID` / `VALID` against the actual signature and hash, no server involved.
+
+<img src="assets/screenshots/verify.png" alt="0xWitness browser verifier showing a real receipt with Content hash: VALID and Signature: VALID" width="820">
+
+Or run it yourself from a terminal:
 
 ```bash
 npm run keys                       # generate the signing keypair
